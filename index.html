@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PULSE</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;600;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="javascript:void(0)" id="refreshLink" aria-label="Refresh page">
+                <h1 class="logo-text">PULSE</h1>
+            </a>
+        </header>
+        
+        <main>
+            <button id="trendButton">
+                <span class="button-text">✨ SHOW ME A TREND</span>
+            </button>
+            
+            <div id="trendCard" class="hidden">
+                <h2 id="trendTitle"></h2>
+                <p id="trendContext"></p>
+                <div class="trend-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">WHEN:</span>
+                        <span id="trendMonth"></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">WHERE:</span>
+                        <span id="trendOrigin"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="idleMessage" class="hidden">
+                <p>Bored? Here's one you didn't ask for.</p>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Why I built this: I wanted a playful space to drop in, get inspired, and see what the internet's been up to. That's it. 💫</p>
+        </footer>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html> 
