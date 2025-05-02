@@ -120,12 +120,6 @@ const trendsData = [
         origin: "TikTok, YouTube"
     },
     {
-        title: "Sombr Sleepy Vibes Aesthetic",
-        context: "A trend embracing lethargy and relaxation, featuring cozy visuals and mellow music to promote restfulness.",
-        month: "April 2025",
-        origin: "TikTok, Instagram"
-    },
-    {
         title: "Judas New Choreography Challenge",
         context: "A resurgence of Lady Gaga's 'Judas' with new dance routines, sparking widespread participation in dance challenges.",
         month: "April 2025",
