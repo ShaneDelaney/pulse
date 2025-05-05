@@ -55,17 +55,19 @@ async function fetchTrendResponse(userInput) {
   try {
     console.log('Sending request to OpenRouter API...');
     console.log('Request body:', JSON.stringify({
-      model: "perplexity/sonar-medium-chat",
+      model: "anthropic/claude-3-opus-20240229",
       messages: [{ role: "user", content: userInput }]
     }));
     
     const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: "perplexity/sonar-medium-chat",
+      model: "anthropic/claude-3-opus-20240229",
       messages: [{ role: "user", content: userInput }]
     }, {
       headers: {
         "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://trend-explorer.com",
+        "X-Title": "Trend Explorer"
       }
     });
     

@@ -328,15 +328,59 @@ document.addEventListener('DOMContentLoaded', function() {
           console.error('Error fetching trend response:', error);
           removeTypingIndicator();
           
-          // Show error message
-          let errorMessage = "Something went wrong. Please try again.";
-          if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-              errorMessage = "Network issue. Make sure the server is running at http://localhost:8080.";
-          }
+          // Try the regular chat API as fallback
+          console.log('Trying fallback to regular chat API...');
           
-          addMessageToChat(errorMessage, 'ai');
-          isProcessing = false;
-          autoResizeTextarea();
+          // Prepare fallback payload
+          const fallbackPayload = {
+              question: userMessage,
+              context: conversationContext.slice(-5) // Send last 5 messages for context
+          };
+          
+          // Send fallback request
+          fetch(API_ENDPOINT, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(fallbackPayload)
+          })
+          .then(response => {
+              if (!response.ok) throw new Error(`Fallback HTTP error! Status: ${response.status}`);
+              return response.json();
+          })
+          .then(data => {
+              console.log('Fallback response:', data);
+              removeTypingIndicator();
+              addMessageToChat(data.response, 'ai');
+              
+              // Add to conversation context
+              conversationContext.push({
+                  role: 'user',
+                  content: userMessage
+              });
+              conversationContext.push({
+                  role: 'assistant',
+                  content: data.response
+              });
+              
+              isProcessing = false;
+              autoResizeTextarea();
+          })
+          .catch(fallbackError => {
+              console.error('Fallback error:', fallbackError);
+              
+              // Show final error message
+              let errorMessage = "Something went wrong. Please try again.";
+              if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || 
+                  fallbackError.message.includes('Failed to fetch') || fallbackError.message.includes('NetworkError')) {
+                  errorMessage = "Network issue. Make sure the server is running at http://localhost:8080.";
+              }
+              
+              addMessageToChat(errorMessage, 'ai');
+              isProcessing = false;
+              autoResizeTextarea();
+          });
       });
   }
   
