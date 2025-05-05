@@ -13,6 +13,8 @@ const anthropic = new Anthropic({
 // For web search functionality (using SerpAPI or similar)
 const SEARCH_API_KEY = process.env.SEARCH_API_KEY || 'dummy_key';
 const RESPONSE_MODE = process.env.RESPONSE_MODE || 'mock'; // 'mock' or 'api'
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+const USE_OPENAI = OPENAI_API_KEY && OPENAI_API_KEY.length > 0;
 
 // Enable CORS for all routes
 app.use(cors());
@@ -53,8 +55,9 @@ app.post('/api/chat', async (req, res) => {
       You specialize in explaining internet trends, memes, and cultural phenomena.
       
       When responding about trends:
-      - Be concise but informative
+      - Be extremely concise and efficient with your explanations (50-150 words max)
       - Use a conversational, slightly playful tone
+      - Get straight to the point without unnecessary introductions
       - If asked for examples and you know of relevant videos, include YouTube links in this format: [VIDEO]https://www.youtube.com/watch?v=VIDEO_ID
       - Focus on factual information about the trend
       - Avoid making up specific details you're unsure about
@@ -87,7 +90,7 @@ app.post('/api/chat', async (req, res) => {
       ` : ''}
     `;
     
-    // Convert context to the format expected by Anthropic
+    // Convert context to the format expected by the AI
     const messages = context.map(item => ({
       role: item.role,
       content: item.content
@@ -99,25 +102,58 @@ app.post('/api/chat', async (req, res) => {
       content: question
     });
     
-    console.log('Sending request to Anthropic API...');
+    let aiResponse;
     
-    // Call the Anthropic API
-    const completion = await anthropic.messages.create({
-      model: "claude-3-opus-20240229",
-      max_tokens: 800,
-      system: systemPrompt,
-      messages: messages
-    });
-    
-    // Extract the response
-    const aiResponse = completion.content[0].text;
-    
-    console.log('Received response from Anthropic API');
+    // Use OpenAI if available, otherwise fall back to Anthropic
+    if (USE_OPENAI) {
+      console.log('Sending request to OpenAI API...');
+      
+      // Prepare messages for OpenAI format
+      const openaiMessages = [
+        {
+          role: "system",
+          content: systemPrompt
+        },
+        ...messages
+      ];
+      
+      // Call the OpenAI API
+      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+        model: "gpt-4-turbo",
+        messages: openaiMessages,
+        max_tokens: 250,
+        temperature: 0.7,
+        presence_penalty: 0.1,
+        frequency_penalty: 0.2
+      }, {
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      aiResponse = response.data.choices[0].message.content;
+      console.log('Received response from OpenAI API');
+    } else {
+      console.log('Sending request to Anthropic API...');
+      
+      // Call the Anthropic API
+      const completion = await anthropic.messages.create({
+        model: "claude-3-opus-20240229",
+        max_tokens: 800,
+        system: systemPrompt,
+        messages: messages
+      });
+      
+      // Extract the response
+      aiResponse = completion.content[0].text;
+      console.log('Received response from Anthropic API');
+    }
     
     // Send the response back to the client
     res.json({ response: aiResponse });
   } catch (error) {
-    console.error('Error calling Anthropic API:', error);
+    console.error('Error calling AI API:', error);
     
     // Fall back to mock response if API call fails
     console.log('Falling back to mock response...');

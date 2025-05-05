@@ -8,16 +8,17 @@ document.addEventListener('DOMContentLoaded', function() {
   const sendButton = document.getElementById('sendButton');
   const voiceInputBtn = document.getElementById('voiceInputBtn');
   const suggestionChips = document.getElementById('suggestionChips');
-  const savedTrendsContainer = document.getElementById('savedTrends');
   const newChatButton = document.getElementById('newChatButton');
-  const toggleSidebarButton = document.getElementById('toggleSidebarButton');
-  const mobileMenuButton = document.getElementById('mobileMenuButton');
-  const sidebar = document.getElementById('sidebar');
+  
+  // Elements that are no longer in the DOM after redesign, set to null
+  const savedTrendsContainer = null;
+  const toggleSidebarButton = null;
+  const mobileMenuButton = null;
+  const sidebar = null;
   const mainContent = document.querySelector('.main-content');
   const inputContainer = document.querySelector('.input-container');
   
   // State variables
-  let savedTrends = JSON.parse(localStorage.getItem('savedTrends')) || [];
   let currentConversationId = Date.now().toString();
   let userInteracted = false;
   let isProcessing = false; // Flag to prevent multiple submissions
@@ -82,15 +83,13 @@ document.addEventListener('DOMContentLoaded', function() {
           setupWelcomeScreen();
       }
       
-      // Set up event listeners
+      // Set up event listeners - only add listeners for elements that exist
       startExperienceBtn.addEventListener('click', startExperience);
       userInput.addEventListener('keydown', handleInputKeydown);
       userInput.addEventListener('input', autoResizeTextarea);
       sendButton.addEventListener('click', handleSendMessage);
-      voiceInputBtn.addEventListener('click', toggleVoiceInput);
-      newChatButton.addEventListener('click', startNewConversation);
-      toggleSidebarButton.addEventListener('click', toggleSidebar);
-      mobileMenuButton.addEventListener('click', toggleSidebar);
+      if (voiceInputBtn) voiceInputBtn.addEventListener('click', toggleVoiceInput);
+      if (newChatButton) newChatButton.addEventListener('click', startNewConversation);
       
       // Add event listeners to suggestion chips (will be dynamically created)
       suggestionChips.addEventListener('click', (e) => {
@@ -125,9 +124,6 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Setup speech recognition if available
       setupSpeechRecognition();
-      
-      // Load saved trends into sidebar
-      renderSavedTrends();
       
       // Initial resize check
       handleResize();
@@ -183,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Setup speech recognition
   function setupSpeechRecognition() {
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      if (('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) && voiceInputBtn) {
           const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
           recognition = new SpeechRecognition();
           recognition.continuous = false;
@@ -205,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
           recognition.onend = () => {
               voiceInputBtn.classList.remove('recording');
           };
-      } else {
+      } else if (voiceInputBtn) {
           voiceInputBtn.style.display = 'none';
       }
   }
@@ -321,6 +317,10 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Use the correct endpoint (trend-specific questions use mock endpoint for reliability)
       const endpoint = trend ? MOCK_API_ENDPOINT : API_ENDPOINT;
+      
+      // For debugging
+      console.log('Sending request to:', endpoint);
+      console.log('Payload:', JSON.stringify(payload));
       
       // Check if server is available first
       checkServerAvailability()
@@ -656,134 +656,23 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Show toast notification
   function showToast(message) {
-      // Remove any existing toasts
-      const existingToast = document.querySelector('.toast-notification');
-      if (existingToast) {
-          document.body.removeChild(existingToast);
-      }
-      
-      // Create new toast
+      // Create toast element
       const toast = document.createElement('div');
       toast.classList.add('toast-notification');
       toast.textContent = message;
+      
+      // Add to body
       document.body.appendChild(toast);
       
-      // Show the toast
+      // Remove after 3 seconds
       setTimeout(() => {
-          toast.classList.add('toast-show');
-      }, 10);
-      
-      // Hide and remove after 3 seconds
-      setTimeout(() => {
-          toast.classList.remove('toast-show');
-          toast.classList.add('toast-hide');
-          setTimeout(() => {
-              document.body.removeChild(toast);
-          }, 300);
+          document.body.removeChild(toast);
       }, 3000);
   }
   
-  // Save trend to history
-  function saveTrendToHistory(trend) {
-      // Create a new saved trend item
-      const savedTrend = {
-          id: Date.now().toString(),
-          conversationId: currentConversationId,
-          title: trend.title,
-          trend: trend,
-          timestamp: Date.now()
-      };
-      
-      // Add to saved trends
-      savedTrends.unshift(savedTrend);
-      
-      // Keep only the most recent 20
-      if (savedTrends.length > 20) {
-          savedTrends.pop();
-      }
-      
-      // Save to localStorage
-      localStorage.setItem('savedTrends', JSON.stringify(savedTrends));
-      
-      // Update sidebar
-      renderSavedTrends();
-  }
-  
-  // Render saved trends in sidebar
-  function renderSavedTrends() {
-      savedTrendsContainer.innerHTML = '';
-      
-      if (savedTrends.length === 0) {
-          const emptyMessage = document.createElement('div');
-          emptyMessage.classList.add('empty-trends-message');
-          emptyMessage.textContent = 'No saved trends yet';
-          savedTrendsContainer.appendChild(emptyMessage);
-          return;
-      }
-      
-      savedTrends.forEach(item => {
-          const trendElement = document.createElement('div');
-          trendElement.classList.add('saved-trend-item');
-          if (item.conversationId === currentConversationId) {
-              trendElement.classList.add('active');
-          }
-          
-          // Format the date
-          const date = new Date(item.timestamp);
-          const formattedDate = date.toLocaleDateString(undefined, { 
-              month: 'short', 
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-          });
-          
-          trendElement.innerHTML = `
-              <div class="saved-trend-title">${item.title}</div>
-              <div class="saved-trend-time">${formattedDate}</div>
-          `;
-          
-          trendElement.addEventListener('click', () => {
-              loadSavedTrend(item);
-          });
-          
-          savedTrendsContainer.appendChild(trendElement);
-      });
-  }
-  
-  // Load a saved trend
-  function loadSavedTrend(trendItem) {
-      // Start a new conversation with this trend
-      startNewConversation();
-      currentConversationId = trendItem.conversationId;
-      
-      // Set the current trend
-      currentTrend = trendItem.trend;
-      
-      // After a short delay, add the trend to the chat
-      setTimeout(() => {
-          addTrendToChat(trendItem.trend);
-          
-          // Add to conversation context
-          conversationContext.push({
-              role: 'assistant',
-              content: `Here's a trending topic: ${trendItem.trend.title}. ${trendItem.trend.context} This is trending on ${trendItem.trend.origin} during ${trendItem.trend.month}.`
-          });
-          
-          // Update suggestion chips
-          updateSuggestionChips([
-              { prompt: `Why is ${trendItem.trend.title} trending?`, autoSend: true },
-              { prompt: "Show me another trend", autoSend: true },
-              { prompt: `Who started this trend?`, autoSend: true }
-          ]);
-          
-          // Update active state in sidebar
-          renderSavedTrends();
-      }, 300);
-      
-      // On mobile, close sidebar
-      if (window.innerWidth <= 1023) {
-          toggleSidebar();
-      }
+  // Empty sidebar toggle function to prevent errors
+  function toggleSidebar() {
+      console.log("Sidebar functionality has been removed in the UI redesign");
   }
   
   // Start a new conversation
@@ -814,14 +703,6 @@ document.addEventListener('DOMContentLoaded', function() {
       // Reset processing state
       isProcessing = false;
       autoResizeTextarea();
-  }
-  
-  // Toggle sidebar
-  function toggleSidebar() {
-      sidebar.classList.toggle('sidebar-collapsed');
-      sidebar.classList.toggle('sidebar-visible');
-      mainContent.classList.toggle('sidebar-hidden');
-      inputContainer.classList.toggle('sidebar-hidden');
   }
   
   // Initialize the app
