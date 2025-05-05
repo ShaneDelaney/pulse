@@ -8,70 +8,56 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar sidebar-collapsed">
-        <div class="sidebar-header">
-            <h2 class="text-lg font-semibold">Saved Trends</h2>
-            <button id="newChatButton" class="new-chat-btn">
-                <span>+ New Trend</span>
-            </button>
-        </div>
-        <div id="savedTrends" class="saved-trends">
-            <!-- Saved trends will be added here -->
-        </div>
-        <div class="sidebar-footer">
-            <button id="toggleSidebarButton" class="toggle-sidebar-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    <!-- Welcome Screen (simple CTA only) -->
+    <div id="welcomeScreen" class="welcome-screen">
+        <div class="welcome-content">
+            <h1 class="welcome-logo">PULSE</h1>
+            <p class="welcome-text">Discover what's in the air</p>
+            <button id="startExperienceBtn" class="start-experience-btn">
+                <span>✨ Show me what's trending</span>
             </button>
         </div>
     </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <header class="main-header">
-            <button id="mobileMenuButton" class="toggle-sidebar-btn mobile-only">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            </button>
-            <h1 class="logo-text">PULSE</h1>
-        </header>
-        
-        <div id="chatContainer" class="chat-container">
-            <!-- Welcome message -->
-            <div class="message system-message">
-                <p>Welcome to PULSE. Discover trending topics or ask questions about trends.</p>
-            </div>
-            <!-- Chat messages will be added here -->
-        </div>
-        
-        <!-- Floating "Hit Me Again" button -->
-        <div id="hitMeAgainContainer" class="hit-me-again-container">
-            <button id="hitMeAgainButton" class="hit-me-again-btn">
-                <span>✨ Hit Me Again</span>
-            </button>
-        </div>
-        
-        <!-- Input area -->
-        <div class="input-container">
-            <div class="input-wrapper">
-                <textarea id="userInput" rows="1" placeholder="Ask about a trend or generate a new one..."></textarea>
-                <button id="sendButton" class="send-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                </button>
+    
+    <!-- Main App UI (hidden initially) -->
+    <div id="appInterface" class="app-interface hidden">
+        <!-- Main Content -->
+        <div class="main-content full-width">
+            <header class="main-header">
+                <h1 class="logo-text">PULSE</h1>
+                <div class="header-actions">
+                    <button id="voiceInputBtn" class="voice-input-btn" title="Voice Input">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                    </button>
+                    <button id="newChatButton" class="new-chat-btn-minimal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>New Trend</span>
+                    </button>
+                </div>
+            </header>
+            
+            <div id="chatContainer" class="chat-container">
+                <!-- Chat messages will be added here -->
             </div>
             
-            <div id="suggestionChips" class="suggestion-chips">
-                <!-- Suggestion chips will be added dynamically -->
-                <button class="suggestion-chip" data-prompt="Show me a TikTok trend">Show me a TikTok trend</button>
-                <button class="suggestion-chip" data-prompt="What's trending on YouTube?">What's trending on YouTube?</button>
-                <button class="suggestion-chip" data-prompt="Give me a fashion trend">Give me a fashion trend</button>
+            <!-- Input area (fixed at bottom) -->
+            <div class="input-container full-width">
+                <div class="input-wrapper">
+                    <textarea id="userInput" rows="1" placeholder="Catch a trend or ask about one..."></textarea>
+                    <button id="sendButton" class="send-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+                
+                <div id="suggestionChips" class="suggestion-chips">
+                    <!-- Suggestion chips will be added dynamically -->
+                </div>
+                
+                <div class="tooltip-container">
+                    <p class="input-info">Not sure what to ask? Try clicking a prompt.</p>
+                </div>
             </div>
-            
-            <p class="input-info">PULSE can make mistakes. Consider checking important information.</p>
         </div>
-        
-        <footer class="main-footer">
-            <p>Catch cultural shifts before they happen. <a href="https://emrg.vercel.app/index.html" target="_blank">More at EMRG →</a> ✨</p>
-        </footer>
     </div>
     
     <script src="app.js"></script>

@@ -1,6 +1,20 @@
 {
+  "name": "pulse",
+  "version": "1.0.0",
+  "description": "AI-powered trend discovery app",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm start",
+    "client": "http-server -p 3000",
+    "dev": "concurrently \"cd server && npm run dev\" \"http-server -p 3000\"",
+    "install-all": "npm install && cd server && npm install"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
