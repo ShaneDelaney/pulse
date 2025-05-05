@@ -56,12 +56,14 @@ async function fetchTrendResponse(userInput) {
     console.log('Sending request to OpenRouter API...');
     console.log('Request body:', JSON.stringify({
       model: "anthropic/claude-3-opus-20240229",
-      messages: [{ role: "user", content: userInput }]
+      messages: [{ role: "user", content: userInput }],
+      max_tokens: 500
     }));
     
     const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
       model: "anthropic/claude-3-opus-20240229",
-      messages: [{ role: "user", content: userInput }]
+      messages: [{ role: "user", content: userInput }],
+      max_tokens: 500
     }, {
       headers: {
         "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
@@ -80,7 +82,11 @@ async function fetchTrendResponse(userInput) {
     }
   } catch (error) {
     console.error('OpenRouter API error:', error.message);
-    console.error('Error details:', error.response?.data || 'No response data');
+    if (error.response && error.response.data) {
+      console.error('Error details:', error.response.data);
+    } else {
+      console.error('No detailed error response available');
+    }
     throw new Error(`OpenRouter API error: ${error.message}`);
   }
 }
@@ -228,7 +234,7 @@ app.post('/api/chat', async (req, res) => {
 
 // Handle mock responses
 function handleMockResponse(req, res) {
-  const { question, trend, context = [] } = req.body;
+  const { question, trend = {}, context = [] } = req.body;
   
   console.log('Using mock response for:', question);
   
@@ -240,46 +246,80 @@ function handleMockResponse(req, res) {
     
     if (lowerQuestion.includes('example') || lowerQuestion.includes('show me')) {
       // Return examples with video embeds when available
-      switch(trend.title) {
-        case "POV: You're Being Mugged Meme":
-          response = "Here's a popular example of the mugging POV trend: [VIDEO]https://www.youtube.com/watch?v=dQw4w9WgXcQ These videos typically use humor to subvert expectations about mugging scenarios.";
-          break;
-        
-        case "KATSEYE's Gnarly Release":
-          response = "Here's the official music video for KATSEYE's 'Gnarly': [VIDEO]https://www.youtube.com/watch?v=dQw4w9WgXcQ The song's energetic beat and chaotic visuals helped it go viral.";
-          break;
+      if (trend && trend.title) {
+        switch(trend.title) {
+          case "POV: You're Being Mugged Meme":
+            response = "Here's a popular example of the mugging POV trend: [VIDEO]https://www.youtube.com/watch?v=dQw4w9WgXcQ These videos typically use humor to subvert expectations about mugging scenarios.";
+            break;
           
-        default:
-          response = `While I don't have a specific video example for "${trend.title}", this trend typically features ${trend.context.toLowerCase()} You can find many examples by searching the hashtag on ${trend.origin.split(',')[0]}.`;
+          case "KATSEYE's Gnarly Release":
+            response = "Here's the official music video for KATSEYE's 'Gnarly': [VIDEO]https://www.youtube.com/watch?v=dQw4w9WgXcQ The song's energetic beat and chaotic visuals helped it go viral.";
+            break;
+            
+          default:
+            response = `While I don't have a specific video example for "${trend.title}", this trend typically features ${trend.context || 'interesting content'} You can find many examples by searching the hashtag on ${trend.origin ? trend.origin.split(',')[0] : 'social media'}.`;
+        }
+      } else {
+        response = "Here's a trending example: [VIDEO]https://www.youtube.com/watch?v=dQw4w9WgXcQ This type of content has been going viral recently across multiple platforms.";
       }
     } 
     else if (lowerQuestion.includes('why') && lowerQuestion.includes('trend')) {
-      response = `"${trend.title}" gained popularity because it resonated with audiences on ${trend.origin} during ${trend.month}. ${trend.context} The format was easy to participate in, highly shareable, and came at a time when users were looking for this type of content.`;
+      if (trend && trend.title) {
+        response = `"${trend.title}" gained popularity because it resonated with audiences on ${trend.origin || 'social media'} during ${trend.month || 'recent months'}. ${trend.context || ''} The format was easy to participate in, highly shareable, and came at a time when users were looking for this type of content.`;
+      } else {
+        response = "Recent trends gain popularity due to their relatability, shareability, and often because they provide a creative outlet for users. The most successful trends are easy to participate in while allowing for personal expression.";
+      }
     }
     else if (lowerQuestion.includes('who started') || lowerQuestion.includes('origin')) {
-      response = `While it's difficult to pinpoint exactly who started "${trend.title}", it first gained significant traction on ${trend.origin.split(',')[0]} in ${trend.month}. ${trend.context} From there, it quickly spread to other platforms as more creators adapted the format.`;
+      if (trend && trend.title) {
+        response = `While it's difficult to pinpoint exactly who started "${trend.title}", it first gained significant traction on ${trend.origin ? trend.origin.split(',')[0] : 'social media'} in ${trend.month || 'recent months'}. ${trend.context || ''} From there, it quickly spread to other platforms as more creators adapted the format.`;
+      } else {
+        response = "Most viral trends begin with a small group of creative users, often on TikTok or Instagram, before being amplified by algorithmic recommendations and celebrity participation. The exact origins can be difficult to trace as trends evolve rapidly.";
+      }
     }
     else if (lowerQuestion.includes('search') || lowerQuestion.includes('latest')) {
       // Simulate web search results for queries asking for fresh information
-      response = `Based on the latest information I could find online:
-      
-      [WEB_RESULT]
-      <h3 class="web-result-title">Latest Trends Report - June 2025</h3>
-      <div class="web-result-url">trendanalysis.com</div>
-      <p class="web-result-snippet">${trend.title} continues to evolve with new creators putting unique spins on the format. The hashtag has now reached over 2 billion views.</p>
-      [/WEB_RESULT]
-      
-      [WEB_RESULT]
-      <h3 class="web-result-title">Cultural Impact Study: Viral Phenomena</h3>
-      <div class="web-result-url">digitalanthropology.edu</div>
-      <p class="web-result-snippet">Researchers note that ${trend.title} represents a significant shift in how content is consumed and shared across generational divides.</p>
-      [/WEB_RESULT]
-      
-      These findings suggest the trend has had staying power beyond initial expectations, likely due to its adaptability and cross-platform appeal.`;
+      if (trend && trend.title) {
+        response = `Based on the latest information I could find online:
+        
+        [WEB_RESULT]
+        <h3 class="web-result-title">Latest Trends Report - June 2025</h3>
+        <div class="web-result-url">trendanalysis.com</div>
+        <p class="web-result-snippet">${trend.title} continues to evolve with new creators putting unique spins on the format. The hashtag has now reached over 2 billion views.</p>
+        [/WEB_RESULT]
+        
+        [WEB_RESULT]
+        <h3 class="web-result-title">Cultural Impact Study: Viral Phenomena</h3>
+        <div class="web-result-url">digitalanthropology.edu</div>
+        <p class="web-result-snippet">Researchers note that ${trend.title} represents a significant shift in how content is consumed and shared across generational divides.</p>
+        [/WEB_RESULT]
+        
+        These findings suggest the trend has had staying power beyond initial expectations, likely due to its adaptability and cross-platform appeal.`;
+      } else {
+        response = `Based on the latest information I could find online:
+        
+        [WEB_RESULT]
+        <h3 class="web-result-title">Latest Social Media Trends - May 2025</h3>
+        <div class="web-result-url">digitalpulse.com</div>
+        <p class="web-result-snippet">The latest trends include AI-generated dance challenges, seamless reality filters, and sustainability-focused content creation, with Gen Z leading adoption.</p>
+        [/WEB_RESULT]
+        
+        [WEB_RESULT]
+        <h3 class="web-result-title">TikTok Trend Report 2025</h3>
+        <div class="web-result-url">tiktoktrends.com</div>
+        <p class="web-result-snippet">Micro-storytelling formats under 15 seconds are dominating the platform, with audio-reactive AR effects seeing a 300% increase in creator adoption.</p>
+        [/WEB_RESULT]
+        
+        These findings indicate that trends are becoming more technically sophisticated while paradoxically emphasizing authenticity and raw creativity.`;
+      }
     }
     else {
       // Generic response for other questions
-      response = `About "${trend.title}": ${trend.context} This trend was particularly popular on ${trend.origin} during ${trend.month}. Is there something specific about it you'd like to know?`;
+      if (trend && trend.title) {
+        response = `About "${trend.title}": ${trend.context || 'This is a popular trend'} This trend was particularly popular on ${trend.origin || 'social media'} during ${trend.month || 'recent months'}. Is there something specific about it you'd like to know?`;
+      } else {
+        response = `The latest social media trends include AR filters that react to music, 'day in my life' micro-documentaries, and challenges that showcase unexpected talents. These trends are particularly popular on TikTok and Instagram, with creators finding innovative ways to put their personal spin on viral formats.`;
+      }
     }
     
     res.json({ response });
