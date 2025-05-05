@@ -278,6 +278,11 @@ document.addEventListener("DOMContentLoaded", function() {
             trendCard.classList.remove("visible");
         }
         
+        // Also hide the elaboration interface
+        const trendElaboration = document.getElementById('trendElaboration');
+        trendElaboration.classList.remove("visible");
+        trendElaboration.classList.add("hidden");
+        
         setTimeout(function() {
             // Get non-repeating random trend
             const randomTrend = getNonRepeatingTrend();
@@ -301,6 +306,9 @@ document.addEventListener("DOMContentLoaded", function() {
             
             // Fade in effect
             trendCard.classList.add("visible");
+            
+            // Show elaboration interface
+            elaborationSystem.showElaborationInterface(randomTrend);
         }, 400);
     }
     
@@ -332,4 +340,215 @@ document.addEventListener("DOMContentLoaded", function() {
     
     // Initialize idle timer
     resetIdleTimer();
-}); 
+});
+
+// AI Elaboration System
+function initializeElaborationSystem() {
+  const chatInput = document.getElementById('chatInput');
+  const sendButton = document.getElementById('sendQuestion');
+  const chatMessages = document.getElementById('chatMessages');
+  const trendElaboration = document.getElementById('trendElaboration');
+  const suggestionChips = document.querySelectorAll('.suggestion-chip');
+  
+  let currentTrend = null;
+  
+  // Show elaboration interface after trend is displayed
+  function showElaborationInterface(trend) {
+    currentTrend = trend;
+    
+    // Clear previous messages
+    chatMessages.innerHTML = '';
+    
+    // Show the interface with delay
+    setTimeout(() => {
+      trendElaboration.classList.remove('hidden');
+      setTimeout(() => {
+        trendElaboration.classList.add('visible');
+      }, 100);
+    }, 800);
+  }
+  
+  // Add event listeners
+  sendButton.addEventListener('click', () => {
+    const question = chatInput.value.trim();
+    if (question) {
+      askQuestion(question);
+      chatInput.value = '';
+    }
+  });
+  
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      const question = chatInput.value.trim();
+      if (question) {
+        askQuestion(question);
+        chatInput.value = '';
+      }
+    }
+  });
+  
+  // Add event listeners to suggestion chips
+  suggestionChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const question = chip.dataset.question;
+      askQuestion(question);
+    });
+  });
+  
+  // Function to ask a question
+  function askQuestion(question) {
+    // Add user message to chat
+    addMessage(question, 'user');
+    
+    // Get AI response
+    getAIResponse(question, currentTrend)
+      .then(response => {
+        // Add AI response to chat
+        addMessage(response, 'ai');
+      })
+      .catch(error => {
+        console.error('Error getting AI response:', error);
+        addMessage('Sorry, I had trouble answering that question. Please try again.', 'ai');
+      });
+  }
+  
+  // Function to add a message to the chat
+  function addMessage(text, sender) {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', `${sender}-message`);
+    
+    // Process text for any video embeds
+    if (sender === 'ai' && text.includes('[VIDEO]')) {
+      // Extract video content
+      const parts = text.split('[VIDEO]');
+      messageElement.innerHTML = parts[0];
+      
+      // Create video embed if present
+      if (parts.length > 1 && parts[1].includes('youtube.com')) {
+        const videoUrl = parts[1].trim();
+        const videoEmbed = document.createElement('div');
+        videoEmbed.classList.add('video-embed');
+        videoEmbed.innerHTML = `
+          <iframe 
+            width="100%" 
+            height="200" 
+            src="${videoUrl.replace('watch?v=', 'embed/')}" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        `;
+        messageElement.appendChild(videoEmbed);
+        
+        // Add any remaining text
+        if (parts.length > 2) {
+          const remainingText = document.createElement('p');
+          remainingText.textContent = parts.slice(2).join('');
+          messageElement.appendChild(remainingText);
+        }
+      } else {
+        messageElement.textContent = text;
+      }
+    } else {
+      messageElement.textContent = text;
+    }
+    
+    chatMessages.appendChild(messageElement);
+    
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  
+  // Function to get AI response (real API implementation)
+  async function getAIResponse(question, trend) {
+    try {
+      // Show loading indicator
+      const loadingMessage = document.createElement('div');
+      loadingMessage.classList.add('message', 'ai-message', 'loading-message');
+      loadingMessage.textContent = 'Thinking...';
+      chatMessages.appendChild(loadingMessage);
+      
+      // Prepare the data to send to your API
+      const requestData = {
+        question: question,
+        trend: {
+          title: trend.title,
+          context: trend.context,
+          month: trend.month,
+          origin: trend.origin
+        }
+      };
+      
+      // Try to call the real AI API first
+      try {
+        const response = await fetch('http://localhost:3000/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+        });
+        
+        // If successful, use the real AI response
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Remove loading indicator
+          const loadingElement = document.querySelector('.loading-message');
+          if (loadingElement) {
+            chatMessages.removeChild(loadingElement);
+          }
+          
+          return data.response;
+        }
+        
+        // If real API fails, fall back to mock API
+        throw new Error('Real API failed, falling back to mock');
+      } catch (realApiError) {
+        console.warn('Falling back to mock API:', realApiError);
+        
+        // Call the mock API endpoint as fallback
+        const mockResponse = await fetch('http://localhost:3000/api/chat/mock', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+        });
+        
+        if (!mockResponse.ok) {
+          throw new Error(`Mock API error: ${mockResponse.status}`);
+        }
+        
+        const mockData = await mockResponse.json();
+        
+        // Remove loading indicator
+        const loadingElement = document.querySelector('.loading-message');
+        if (loadingElement) {
+          chatMessages.removeChild(loadingElement);
+        }
+        
+        return mockData.response;
+      }
+    } catch (error) {
+      console.error('Error fetching AI response:', error);
+      
+      // Remove loading indicator
+      const loadingElement = document.querySelector('.loading-message');
+      if (loadingElement) {
+        chatMessages.removeChild(loadingElement);
+      }
+      
+      return 'Sorry, I encountered an error while processing your question. Please try again later.';
+    }
+  }
+  
+  // Return public methods
+  return {
+    showElaborationInterface
+  };
+}
+
+// Modify your showRandomTrend function to include the elaboration system
+// First, initialize the elaboration system
+const elaborationSystem = initializeElaborationSystem(); 
