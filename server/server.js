@@ -14,11 +14,74 @@ const anthropic = new Anthropic({
 const SEARCH_API_KEY = process.env.SEARCH_API_KEY || 'dummy_key';
 const RESPONSE_MODE = process.env.RESPONSE_MODE || 'mock'; // 'mock' or 'api'
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 const USE_OPENAI = OPENAI_API_KEY && OPENAI_API_KEY.length > 0;
+const USE_OPENROUTER = OPENROUTER_API_KEY && OPENROUTER_API_KEY.length > 0;
 
 // Enable CORS for all routes
 app.use(cors());
 app.use(express.json());
+
+// Add new endpoint for trend responses using OpenRouter
+app.post('/api/trend', async (req, res) => {
+  try {
+    const { userInput } = req.body;
+    
+    if (!userInput) {
+      return res.status(400).json({ error: 'User input is required' });
+    }
+    
+    console.log('Trend request received:', userInput);
+    
+    if (USE_OPENROUTER) {
+      const response = await fetchTrendResponse(userInput);
+      return res.json({ response });
+    } else {
+      console.log('Falling back to mock trend response');
+      return res.json({ response: `Here's what's trending about "${userInput}": This is a mock response since OpenRouter API key is not configured.` });
+    }
+  } catch (error) {
+    console.error('Error in trend API:', error.message);
+    res.status(500).json({ 
+      error: 'Failed to get trend response', 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
+// Function to fetch trend response from OpenRouter
+async function fetchTrendResponse(userInput) {
+  try {
+    console.log('Sending request to OpenRouter API...');
+    console.log('Request body:', JSON.stringify({
+      model: "perplexity/sonar-medium-chat",
+      messages: [{ role: "user", content: userInput }]
+    }));
+    
+    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+      model: "perplexity/sonar-medium-chat",
+      messages: [{ role: "user", content: userInput }]
+    }, {
+      headers: {
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
+      }
+    });
+    
+    console.log('Raw API response:', JSON.stringify(response.data));
+    
+    if (response.data && response.data.choices && response.data.choices.length > 0) {
+      return response.data.choices[0].message.content;
+    } else {
+      throw new Error('Invalid response structure from OpenRouter API');
+    }
+  } catch (error) {
+    console.error('OpenRouter API error:', error.message);
+    console.error('Error details:', error.response?.data || 'No response data');
+    throw new Error(`OpenRouter API error: ${error.message}`);
+  }
+}
 
 // Enhanced AI chat endpoint
 app.post('/api/chat', async (req, res) => {

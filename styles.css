@@ -9,13 +9,13 @@
 
 :root {
     --primary-bg: #ffffff;
-    --secondary-bg: #f7f7f8;
+    --secondary-bg: #f9f9f9;
     --border-color: #e5e5e5;
-    --text-primary: #000000;
-    --text-secondary: #555555;
-    --accent-color: #000000;
-    --accent-hover: #333333;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --text-primary: #2d2d2d;
+    --text-secondary: #6e6e80;
+    --accent-color: #10a37f; /* ChatGPT green */
+    --accent-hover: #0d8d6f;
+    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     --transition-normal: all 0.2s ease;
     --content-max-width: 768px;
@@ -62,10 +62,11 @@ body {
 
 .welcome-logo {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(3rem, 10vw, 5rem);
+    font-size: clamp(2.5rem, 8vw, 4rem);
     font-weight: 700;
-    letter-spacing: 0.1em;
-    margin-bottom: 16px;
+    letter-spacing: 0.05em;
+    margin-bottom: 32px;
+    color: var(--accent-color);
 }
 
 .welcome-text {
@@ -78,9 +79,9 @@ body {
     background-color: var(--accent-color);
     color: white;
     border: none;
-    border-radius: 24px;
+    border-radius: 8px;
     padding: 16px 32px;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 500;
     cursor: pointer;
     box-shadow: var(--shadow-md);
@@ -88,6 +89,7 @@ body {
 }
 
 .start-experience-btn:hover {
+    background-color: var(--accent-hover);
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
@@ -113,13 +115,7 @@ body {
     flex-direction: column;
     height: 100vh;
     position: relative;
-    transition: width 0.3s ease;
     width: 100%;
-}
-
-.main-content.full-width {
-    width: 100%;
-    max-width: 100%;
 }
 
 /* Header */
@@ -134,10 +130,10 @@ body {
 
 .logo-text {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: 700;
-    letter-spacing: 0.1em;
-    color: var(--text-primary);
+    letter-spacing: 0.05em;
+    color: var(--accent-color);
 }
 
 .header-actions {
@@ -188,6 +184,10 @@ body {
     background-color: var(--secondary-bg);
 }
 
+.new-chat-btn-minimal svg {
+    color: var(--accent-color);
+}
+
 /* Chat container */
 .chat-container {
     flex: 1;
@@ -196,18 +196,16 @@ body {
     scroll-behavior: smooth;
     display: flex;
     flex-direction: column;
-    align-items: center;
 }
 
 .message {
-    max-width: var(--content-max-width);
     width: 100%;
-    padding: 16px 20px;
+    padding: 20px;
     margin: 0;
     opacity: 0;
     transform: translateY(8px);
     animation: fadeIn 0.3s forwards;
-    line-height: 1.6;
+    line-height: 1.7;
     font-size: 1rem;
 }
 
@@ -227,15 +225,22 @@ body {
     font-size: 0.9rem;
     text-align: center;
     padding: 12px 20px;
+    max-width: var(--content-max-width);
+    margin: 0 auto;
 }
 
 .user-message {
     background-color: var(--secondary-bg);
     font-weight: 500;
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    border-radius: 0;
 }
 
 .ai-message {
     background-color: var(--primary-bg);
+    max-width: var(--content-max-width);
+    margin: 0 auto;
 }
 
 /* Trend card */
@@ -305,18 +310,13 @@ body {
     position: sticky;
     bottom: 0;
     width: 100%;
-    padding: 16px;
+    padding: 20px;
     background-color: var(--primary-bg);
     border-top: 1px solid var(--border-color);
     z-index: 10;
-    transition: width 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-.input-container.full-width {
-    width: 100%;
 }
 
 .input-wrapper {
@@ -327,7 +327,7 @@ body {
     padding: 12px 16px;
     background-color: var(--primary-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 8px;
     box-shadow: var(--shadow-sm);
     transition: var(--transition-normal);
 }
@@ -434,6 +434,7 @@ body {
     padding: 16px 20px;
     max-width: var(--content-max-width);
     width: 100%;
+    margin: 0 auto;
 }
 
 .loading-dots {
@@ -447,7 +448,7 @@ body {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: var(--text-secondary);
+    background-color: var(--accent-color);
     opacity: 0.6;
     animation: loadingDots 1.4s infinite ease-in-out both;
 }
@@ -522,7 +523,7 @@ body {
 /* Responsive styles */
 @media (max-width: 768px) {
     .message {
-        padding: 12px 16px;
+        padding: 16px;
     }
     
     .trend-card {
@@ -542,8 +543,8 @@ body {
     }
     
     .start-experience-btn {
-        padding: 14px 28px;
-        font-size: 1.1rem;
+        padding: 14px 24px;
+        font-size: 1rem;
     }
 }
 
@@ -557,7 +558,7 @@ body {
     }
     
     .message {
-        padding: 12px 16px;
+        padding: 16px;
     }
     
     .trend-card {
@@ -566,7 +567,7 @@ body {
     }
     
     .input-container {
-        padding: 12px;
+        padding: 16px;
     }
 }
 

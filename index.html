@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSE</title>
+    <title>Trend Explorer</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;600;700&display=swap">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -11,10 +11,9 @@
     <!-- Welcome Screen (simple CTA only) -->
     <div id="welcomeScreen" class="welcome-screen">
         <div class="welcome-content">
-            <h1 class="welcome-logo">PULSE</h1>
-            <p class="welcome-text">Discover what's in the air</p>
+            <h1 class="welcome-logo">Trend Explorer</h1>
             <button id="startExperienceBtn" class="start-experience-btn">
-                <span>✨ Show me what's trending</span>
+                <span>Start with a random trend</span>
             </button>
         </div>
     </div>
@@ -24,11 +23,8 @@
         <!-- Main Content -->
         <div class="main-content full-width">
             <header class="main-header">
-                <h1 class="logo-text">PULSE</h1>
+                <h1 class="logo-text">Trend Explorer</h1>
                 <div class="header-actions">
-                    <button id="voiceInputBtn" class="voice-input-btn" title="Voice Input">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                    </button>
                     <button id="newChatButton" class="new-chat-btn-minimal">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         <span>New Trend</span>
@@ -43,18 +39,14 @@
             <!-- Input area (fixed at bottom) -->
             <div class="input-container full-width">
                 <div class="input-wrapper">
-                    <textarea id="userInput" rows="1" placeholder="Catch a trend or ask about one..."></textarea>
+                    <textarea id="userInput" rows="1" placeholder="Ask about a trend..."></textarea>
                     <button id="sendButton" class="send-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                     </button>
                 </div>
                 
-                <div id="suggestionChips" class="suggestion-chips">
-                    <!-- Suggestion chips will be added dynamically -->
-                </div>
-                
                 <div class="tooltip-container">
-                    <p class="input-info">Not sure what to ask? Try clicking a prompt.</p>
+                    <p class="input-info">What trends are you curious about?</p>
                 </div>
             </div>
         </div>

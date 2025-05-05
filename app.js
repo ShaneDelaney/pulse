@@ -30,7 +30,15 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // API configuration
   const API_ENDPOINT = 'http://localhost:8080/api/chat';
-  const MOCK_API_ENDPOINT = 'http://localhost:8080/api/chat/mock';
+  const TREND_API_ENDPOINT = 'http://localhost:8080/api/trend';
+  
+  // Default trend questions to auto-prompt after start
+  const defaultTrendQuestions = [
+    "What's trending on TikTok?",
+    "Tell me about the latest social media trend",
+    "What's the biggest viral challenge right now?",
+    "Show me a trending fashion moment"
+  ];
   
   // Your existing trend data
   const trendsData = [
@@ -64,32 +72,16 @@ document.addEventListener('DOMContentLoaded', function() {
       // Check if the user has visited before
       const hasVisited = localStorage.getItem('hasVisitedBefore');
       
-      if (hasVisited) {
-          // User has visited before, skip welcome screen
-          welcomeScreen.classList.add('hidden');
-          appInterface.classList.remove('hidden');
-          // Add welcome message
-          addSystemMessage("Catch a trend or ask about one");
-          
-          // Show default suggestion chips
-          updateSuggestionChips([
-              { prompt: "What's trending on TikTok?", autoSend: true },
-              { prompt: "Show me a weird internet trend", autoSend: true },
-              { prompt: "Why is this viral?", autoSend: true },
-              { prompt: "Give me a niche fashion moment", autoSend: true }
-          ]);
-      } else {
-          // First time visit, show welcome screen
-          setupWelcomeScreen();
-      }
+      // Always show welcome screen on first load, no auto-transition
+      setupWelcomeScreen();
       
-      // Set up event listeners - only add listeners for elements that exist
+      // Set up event listeners
       startExperienceBtn.addEventListener('click', startExperience);
       userInput.addEventListener('keydown', handleInputKeydown);
       userInput.addEventListener('input', autoResizeTextarea);
       sendButton.addEventListener('click', handleSendMessage);
       if (voiceInputBtn) voiceInputBtn.addEventListener('click', toggleVoiceInput);
-      if (newChatButton) newChatButton.addEventListener('click', startNewConversation);
+      newChatButton.addEventListener('click', startNewConversation);
       
       // Add event listeners to suggestion chips (will be dynamically created)
       suggestionChips.addEventListener('click', (e) => {
@@ -127,6 +119,11 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Initial resize check
       handleResize();
+      
+      // Save to localStorage that user has visited
+      if (hasVisited) {
+          userInteracted = true;
+      }
   }
   
   // Set up welcome screen
@@ -135,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
       appInterface.classList.add('hidden');
   }
   
-  // Start the PULSE experience
+  // Start the Trend Explorer experience
   function startExperience() {
       // Hide welcome screen with animation
       welcomeScreen.classList.add('hidden');
@@ -145,23 +142,23 @@ document.addEventListener('DOMContentLoaded', function() {
           appInterface.classList.remove('hidden');
           
           // Add welcome message
-          addSystemMessage("Catch what's in the air");
-          
-          // Show default suggestion chips
-          updateSuggestionChips([
-              { prompt: "What's trending on TikTok?", autoSend: true },
-              { prompt: "Show me a weird internet trend", autoSend: true },
-              { prompt: "Why is this viral?", autoSend: true },
-              { prompt: "Give me a niche fashion moment", autoSend: true }
-          ]);
+          addSystemMessage("Explore the latest trends");
           
           // Mark as visited
           localStorage.setItem('hasVisitedBefore', 'true');
           
-          // Auto-generate a trend after a short delay
+          // Auto-prompt with a random trend question
+          const randomTrendQuestion = defaultTrendQuestions[Math.floor(Math.random() * defaultTrendQuestions.length)];
           setTimeout(() => {
-              generateNewTrend();
-          }, 1000);
+              // Set the input value
+              userInput.value = randomTrendQuestion;
+              
+              // Resize the input
+              autoResizeTextarea();
+              
+              // Send the message
+              handleSendMessage();
+          }, 800);
       }, 500);
   }
   
@@ -273,235 +270,74 @@ document.addEventListener('DOMContentLoaded', function() {
       userInput.style.height = 'auto';
       
       // Process the message
-      processUserMessage(message);
+      fetchTrendResponse(message);
   }
   
-  // Process user message and generate response
-  function processUserMessage(message) {
-      // Add to conversation context
-      conversationContext.push({
-          role: 'user',
-          content: message
-      });
-      
+  // Fetch trend response from OpenRouter via our server
+  function fetchTrendResponse(userMessage) {
       // Show typing indicator
       showTypingIndicator();
       
-      // Check if it's a request for a new trend or a follow-up question
-      if (message.toLowerCase().includes('trend') || 
-          message.toLowerCase().includes('show me') || 
-          message.toLowerCase().includes('what\'s') ||
-          message.toLowerCase().match(/hit me|another one|new one|weird|viral|fashion|tiktok|niche/i)) {
-          
-          // Generate a trend
-          generateNewTrend();
-      } else if (currentTrend) {
-          // It's a follow-up question about the current trend
-          fetchAIResponse(message, currentTrend);
-      } else {
-          // General conversation
-          fetchAIResponse(message);
-      }
-  }
-  
-  // Fetch AI response from API
-  function fetchAIResponse(question, trend = null) {
+      // Prepare request payload
       const payload = {
-          question: question,
-          trend: trend || {},
-          context: conversationContext.slice(-5) // Send last 5 messages for context
+          userInput: userMessage
       };
       
-      // Show loading state
-      isProcessing = true;
-      
-      // Always use the main API endpoint for all requests
-      const endpoint = API_ENDPOINT;
-      
       // For debugging
-      console.log('Sending request to:', endpoint);
+      console.log('Sending request to:', TREND_API_ENDPOINT);
       console.log('Payload:', JSON.stringify(payload));
       
-      // Check if server is available first
-      checkServerAvailability()
-          .then(serverAvailable => {
-              if (!serverAvailable) {
-                  throw new Error('Server not available');
-              }
-              
-              return fetch(endpoint, {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify(payload)
-              });
-          })
-          .then(response => {
-              if (!response.ok) {
-                  throw new Error(`HTTP error! Status: ${response.status}`);
-              }
-              return response.json();
-          })
-          .then(data => {
-              // Remove typing indicator
-              removeTypingIndicator();
-              
-              // Add AI response to chat
-              addMessageToChat(data.response, 'ai');
-              
-              // Add to conversation context
-              conversationContext.push({
-                  role: 'assistant',
-                  content: data.response
-              });
-              
-              // Suggest relevant follow-up questions
-              suggestFollowUps(question, data.response, trend);
-              
-              // Enable input again
-              isProcessing = false;
-              autoResizeTextarea();
-          })
-          .catch(error => {
-              console.error('Error fetching AI response:', error);
-              removeTypingIndicator();
-              
-              // Check what kind of error occurred
-              let fallbackResponse;
-              
-              if (error.message === 'Server not available') {
-                  fallbackResponse = "Can't reach the server right now. Make sure the backend is running at http://localhost:8080.";
-              } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                  fallbackResponse = "Network issue. Check your connection or make sure the server is running.";
-              } else {
-                  fallbackResponse = "Having trouble processing that right now. Try asking about another trend.";
-              }
-              
-              addMessageToChat(fallbackResponse, 'ai');
-              
-              // Provide helpful suggestion chips
-              updateSuggestionChips([
-                  { prompt: "Show me a trend (offline mode)", autoSend: true },
-                  { prompt: "Tell me about a viral meme", autoSend: true },
-                  { prompt: "What's trending on TikTok?", autoSend: true }
-              ]);
-              
-              isProcessing = false;
-              autoResizeTextarea();
-          });
-  }
-  
-  // Check if the server is available
-  function checkServerAvailability() {
-      return fetch('http://localhost:8080/api/health')
-          .then(response => response.ok)
-          .catch(() => false);
-  }
-  
-  // Generate a new trend
-  function generateNewTrend() {
-      // Get a non-repeating random trend
-      const randomTrend = getNonRepeatingTrend();
-      
-      // Set as current trend
-      currentTrend = randomTrend;
-      
-      // Add to recent trends
-      recentTrends.push(randomTrend);
-      
-      // Keep only the most recent 5
-      if (recentTrends.length > maxRecentTrends) {
-          recentTrends.shift();
-      }
-      
-      // After a short delay, show the trend
-      setTimeout(() => {
-          removeTypingIndicator();
-          addTrendToChat(randomTrend);
+      // Send request to our server
+      fetch(TREND_API_ENDPOINT, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+      })
+      .then(response => {
+          if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+      })
+      .then(data => {
+          console.log('Response from server:', data);
           
-          // Add assistant context for this trend
+          // Remove typing indicator
+          removeTypingIndicator();
+          
+          // Add AI response to chat
+          addMessageToChat(data.response, 'ai');
+          
+          // Add to conversation context
+          conversationContext.push({
+              role: 'user',
+              content: userMessage
+          });
           conversationContext.push({
               role: 'assistant',
-              content: `Here's a trending topic: ${randomTrend.title}. ${randomTrend.context} This is trending on ${randomTrend.origin} during ${randomTrend.month}.`
+              content: data.response
           });
-          
-          // Update suggestion chips with follow-up questions
-          updateSuggestionChips([
-              { prompt: `Why is ${randomTrend.title} trending?`, autoSend: true },
-              { prompt: "Show me another trend", autoSend: true },
-              { prompt: `Who started this trend?`, autoSend: true },
-              { prompt: `Show me examples`, autoSend: true }
-          ]);
           
           // Enable input again
           isProcessing = false;
           autoResizeTextarea();
-      }, 1200);
-  }
-  
-  // Suggest follow-up questions based on the conversation
-  function suggestFollowUps(question, response, trend) {
-      let suggestions = [];
-      
-      if (trend) {
-          // Trend-specific follow-ups
-          if (question.toLowerCase().includes('why')) {
-              suggestions = [
-                  { prompt: "Show me examples", autoSend: true },
-                  { prompt: `Who started this?`, autoSend: true },
-                  { prompt: "Show me another trend", autoSend: true },
-                  { prompt: "Is this controversial?", autoSend: true }
-              ];
-          } else if (question.toLowerCase().includes('who') || question.toLowerCase().includes('origin')) {
-              suggestions = [
-                  { prompt: `Why is this popular?`, autoSend: true },
-                  { prompt: "Show me examples", autoSend: true },
-                  { prompt: "Show me another trend", autoSend: true },
-                  { prompt: "Similar trends?", autoSend: true }
-              ];
-          } else if (question.toLowerCase().includes('example')) {
-              suggestions = [
-                  { prompt: `Is this controversial?`, autoSend: true },
-                  { prompt: "Show me another trend", autoSend: true },
-                  { prompt: `Similar trends?`, autoSend: true },
-                  { prompt: "Who started this?", autoSend: true }
-              ];
-          } else {
-              suggestions = [
-                  { prompt: `Why is this trending?`, autoSend: true },
-                  { prompt: "Show me examples", autoSend: true },
-                  { prompt: "Show me another trend", autoSend: true },
-                  { prompt: "Who started this?", autoSend: true }
-              ];
+      })
+      .catch(error => {
+          console.error('Error fetching trend response:', error);
+          removeTypingIndicator();
+          
+          // Show error message
+          let errorMessage = "Something went wrong. Please try again.";
+          if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+              errorMessage = "Network issue. Make sure the server is running at http://localhost:8080.";
           }
-      } else {
-          // General follow-ups
-          suggestions = [
-              { prompt: "What's trending on TikTok?", autoSend: true },
-              { prompt: "Show me a weird internet trend", autoSend: true },
-              { prompt: "Why is this viral?", autoSend: true },
-              { prompt: "Give me a niche fashion moment", autoSend: true }
-          ];
-      }
-      
-      updateSuggestionChips(suggestions);
-  }
-  
-  // Get a non-repeating random trend
-  function getNonRepeatingTrend() {
-      // Filter out recently shown trends
-      const availableTrends = trendsData.filter(trend => 
-          !recentTrends.some(recentTrend => recentTrend.title === trend.title)
-      );
-      
-      // If all trends have been shown recently, just pick a random one
-      if (availableTrends.length === 0) {
-          return trendsData[Math.floor(Math.random() * trendsData.length)];
-      }
-      
-      // Otherwise, pick a random trend from the available ones
-      return availableTrends[Math.floor(Math.random() * availableTrends.length)];
+          
+          addMessageToChat(errorMessage, 'ai');
+          isProcessing = false;
+          autoResizeTextarea();
+      });
   }
   
   // Add a system message to the chat
@@ -560,40 +396,6 @@ document.addEventListener('DOMContentLoaded', function() {
       // Add animation class after a small delay (for transition effect)
       setTimeout(() => {
           messageElement.classList.add('visible');
-      }, 10);
-      
-      // Scroll to bottom
-      scrollToBottom();
-  }
-  
-  // Add a trend to the chat
-  function addTrendToChat(trend) {
-      const trendElement = document.createElement('div');
-      trendElement.classList.add('message', 'ai-message');
-      
-      // Create trend content
-      trendElement.innerHTML = `
-          <div class="trend-card">
-              <div class="trend-title">${trend.title}</div>
-              <div class="trend-context">${trend.context}</div>
-              <div class="trend-meta">
-                  <div class="meta-item">
-                      <span class="meta-label">WHEN</span>
-                      <span>${trend.month}</span>
-                  </div>
-                  <div class="meta-item">
-                      <span class="meta-label">WHERE</span>
-                      <span>${trend.origin}</span>
-                  </div>
-              </div>
-          </div>
-      `;
-      
-      chatContainer.appendChild(trendElement);
-      
-      // Add animation class after a small delay (for transition effect)
-      setTimeout(() => {
-          trendElement.classList.add('visible');
       }, 10);
       
       // Scroll to bottom
@@ -685,20 +487,20 @@ document.addEventListener('DOMContentLoaded', function() {
       currentTrend = null;
       
       // Add welcome message
-      addSystemMessage("What's in the air today?");
+      addSystemMessage("Start a new trend exploration");
       
-      // Reset suggestion chips
-      updateSuggestionChips([
-          { prompt: "What's trending on TikTok?", autoSend: true },
-          { prompt: "Show me a weird internet trend", autoSend: true },
-          { prompt: "Why is this viral?", autoSend: true },
-          { prompt: "Give me a niche fashion moment", autoSend: true }
-      ]);
-      
-      // Generate a new trend
+      // Auto-prompt with a random trend question
+      const randomTrendQuestion = defaultTrendQuestions[Math.floor(Math.random() * defaultTrendQuestions.length)];
       setTimeout(() => {
-          generateNewTrend();
-      }, 500);
+          // Set the input value
+          userInput.value = randomTrendQuestion;
+          
+          // Resize the input
+          autoResizeTextarea();
+          
+          // Send the message
+          handleSendMessage();
+      }, 800);
       
       // Reset processing state
       isProcessing = false;
