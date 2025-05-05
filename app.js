@@ -315,8 +315,8 @@ document.addEventListener('DOMContentLoaded', function() {
       // Show loading state
       isProcessing = true;
       
-      // Use the correct endpoint (trend-specific questions use mock endpoint for reliability)
-      const endpoint = trend ? MOCK_API_ENDPOINT : API_ENDPOINT;
+      // Always use the main API endpoint for all requests
+      const endpoint = API_ENDPOINT;
       
       // For debugging
       console.log('Sending request to:', endpoint);
