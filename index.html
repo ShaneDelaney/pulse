@@ -8,63 +8,72 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <a href="javascript:void(0)" id="refreshLink" aria-label="Refresh page">
-                <h1 class="logo-text">PULSE</h1>
-            </a>
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar sidebar-collapsed">
+        <div class="sidebar-header">
+            <h2 class="text-lg font-semibold">Saved Trends</h2>
+            <button id="newChatButton" class="new-chat-btn">
+                <span>+ New Trend</span>
+            </button>
+        </div>
+        <div id="savedTrends" class="saved-trends">
+            <!-- Saved trends will be added here -->
+        </div>
+        <div class="sidebar-footer">
+            <button id="toggleSidebarButton" class="toggle-sidebar-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <header class="main-header">
+            <button id="mobileMenuButton" class="toggle-sidebar-btn mobile-only">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <h1 class="logo-text">PULSE</h1>
         </header>
         
-        <main>
-            <button id="trendButton">
-                <span class="button-text">✨ SHOW ME A TREND</span>
-            </button>
-            
-            <div id="trendCard" class="hidden">
-                <h2 id="trendTitle"></h2>
-                <p id="trendContext"></p>
-                <div class="trend-meta">
-                    <div class="meta-item">
-                        <span class="meta-label">WHEN:</span>
-                        <span id="trendMonth"></span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">WHERE:</span>
-                        <span id="trendOrigin"></span>
-                    </div>
-                </div>
+        <div id="chatContainer" class="chat-container">
+            <!-- Welcome message -->
+            <div class="message system-message">
+                <p>Welcome to PULSE. Discover trending topics or ask questions about trends.</p>
             </div>
-            
-            <div id="trendElaboration" class="hidden">
-                <div class="elaboration-header">
-                    <h3>Ask about this trend</h3>
-                </div>
-                <div id="chatMessages" class="chat-messages">
-                    <!-- Messages will appear here -->
-                </div>
-                <div class="chat-input-container">
-                    <input type="text" id="chatInput" placeholder="Ask a question about this trend...">
-                    <button id="sendQuestion">
-                        <span>Ask</span>
-                    </button>
-                </div>
-                <div class="suggestion-chips">
-                    <button class="suggestion-chip" data-question="Why is this trending?">Why is this trending?</button>
-                    <button class="suggestion-chip" data-question="Show me examples">Show me examples</button>
-                    <button class="suggestion-chip" data-question="Who started this?">Who started this?</button>
-                </div>
-            </div>
-            
-            <div id="idleMessage" class="hidden">
-                <p>Bored? Here's one you didn't ask for.</p>
-            </div>
-        </main>
+            <!-- Chat messages will be added here -->
+        </div>
         
-        <footer>
+        <!-- Floating "Hit Me Again" button -->
+        <div id="hitMeAgainContainer" class="hit-me-again-container">
+            <button id="hitMeAgainButton" class="hit-me-again-btn">
+                <span>✨ Hit Me Again</span>
+            </button>
+        </div>
+        
+        <!-- Input area -->
+        <div class="input-container">
+            <div class="input-wrapper">
+                <textarea id="userInput" rows="1" placeholder="Ask about a trend or generate a new one..."></textarea>
+                <button id="sendButton" class="send-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+            
+            <div id="suggestionChips" class="suggestion-chips">
+                <!-- Suggestion chips will be added dynamically -->
+                <button class="suggestion-chip" data-prompt="Show me a TikTok trend">Show me a TikTok trend</button>
+                <button class="suggestion-chip" data-prompt="What's trending on YouTube?">What's trending on YouTube?</button>
+                <button class="suggestion-chip" data-prompt="Give me a fashion trend">Give me a fashion trend</button>
+            </div>
+            
+            <p class="input-info">PULSE can make mistakes. Consider checking important information.</p>
+        </div>
+        
+        <footer class="main-footer">
             <p>Catch cultural shifts before they happen. <a href="https://emrg.vercel.app/index.html" target="_blank">More at EMRG →</a> ✨</p>
         </footer>
     </div>
     
     <script src="app.js"></script>
 </body>
-</html> 
+</html>

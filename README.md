@@ -1,13 +1,15 @@
 # PULSE - AI-Powered Trend Discovery
 
-A minimalist trend discovery app that shows internet trends from 2025 with AI-powered explanations.
+A modern, conversation-based trend discovery app that shows internet trends from 2025 with AI-powered explanations.
 
 ## Features
-- Clean black and white design
+- ChatGPT-style conversation interface
+- Responsive design for desktop and mobile
+- Sidebar for saved trends history
 - Non-repeating trend algorithm
-- Mobile-optimized interface
-- AI-powered trend explanations
-- Video embedding for trend examples
+- Follow-up questions and suggestions
+- Share functionality
+- Keyboard shortcuts
 
 ## Setup Instructions
 
@@ -23,7 +25,7 @@ A minimalist trend discovery app that shows internet trends from 2025 with AI-po
    npx http-server -p 8000
    ```
 
-### Backend
+### Backend (for AI integration)
 1. Navigate to the server directory
    ```
    cd server
@@ -46,6 +48,21 @@ A minimalist trend discovery app that shows internet trends from 2025 with AI-po
 
 5. Open your browser to `http://localhost:8000`
 
+## Keyboard Shortcuts
+- `Enter`: Send message
+- `Shift + Enter`: New line
+- `Escape`: Clear input
+- `Up Arrow`: Edit last message
+
+## Technologies Used
+- HTML, CSS, JavaScript
+- Express.js for the backend
+- Anthropic Claude API for AI responses
+
 ## Development
 
-To run the server in development mode with auto-restart: 
+To run the server in development mode with auto-restart:
+```
+cd server
+npm run dev
+```

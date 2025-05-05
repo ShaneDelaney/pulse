@@ -1,554 +1,604 @@
-const trendsData = [
-    {
-        title: "Mother's Day Gifting Revolution",
-        context: "A surge in AI-powered gift suggestions, with smart bird feeders and personalized jewelry topping the charts.",
-        month: "April-May 2025",
-        origin: "TikTok, Instagram, E-commerce"
-    },
-    {
-        title: "POV: You're Being Mugged Meme",
-        context: "A viral TikTok trend where creators humorously reenact exaggerated mugging scenarios, often with unexpected twists.",
-        month: "March 2025",
-        origin: "TikTok"
-    },
-    {
-        title: "Sinder VTuber Controversy",
-        context: "VTuber Sinder faced backlash over alleged manipulation and slander within the community, leading to widespread discussions about creator accountability.",
-        month: "April 2025",
-        origin: "Twitch, Twitter, Reddit"
-    },
-    {
-        title: "KATSEYE's Gnarly Release",
-        context: "The girl group KATSEYE dropped their chaotic and energetic single 'Gnarly,' marking a new era in their musical journey.",
-        month: "April 2025",
-        origin: "Spotify, YouTube, TikTok"
-    },
-    {
-        title: "ChatGPT's Over-Niceness Rollback",
-        context: "OpenAI reverted a ChatGPT update after users reported the AI was excessively complimentary, sparking a wave of memes and discussions.",
-        month: "April 2025",
-        origin: "Reddit, Twitter, Tech Blogs"
-    },
-    {
-        title: "Italian Brainrot Phenomenon",
-        context: "A surreal meme trend featuring AI-generated characters with faux-Italian names and accents, captivating Gen Z and Gen Alpha audiences.",
-        month: "January-April 2025",
-        origin: "TikTok, Instagram"
-    },
-    {
-        title: "Jaws Theme Resurgence",
-        context: "TikTok users revived the classic 'Jaws' theme, creating humorous videos of people circling like sharks, leading up to the film's 50th anniversary.",
-        month: "April 2025",
-        origin: "TikTok, X, Reddit"
-    },
-    {
-        title: "Lorde's Virgin Album Announcement",
-        context: "Lorde announced her fourth studio album, 'Virgin,' described as emotionally raw and transparent, set for a June release.",
-        month: "April 2025",
-        origin: "Pitchfork, Twitter, Music Blogs"
-    },
-    {
-        title: "Phonk Music's Mainstream Breakthrough",
-        context: "Phonk, a subgenre blending Memphis rap and lo-fi aesthetics, gained massive popularity, dominating TikTok playlists and gym sessions.",
-        month: "Early 2025",
-        origin: "TikTok, Spotify"
-    },
-    {
-        title: "Beyoncé's Cowboy Carter Tour Kickoff",
-        context: "Beyoncé launched her 'Cowboy Carter' tour, blending country and R&B, with a grand opening in Inglewood, California.",
-        month: "April 28, 2025",
-        origin: "SoFi Stadium, Inglewood"
-    },
-    {
-        title: "Sinners Film's Box Office Success",
-        context: "Directed by Ryan Coogler and starring Michael B. Jordan, 'Sinners' became a surprise hit, grossing over $175 million globally.",
-        month: "April 2025",
-        origin: "Cinemas Worldwide"
-    },
-    {
-        title: "James Charles' Prom Makeup Tutorial",
-        context: "James Charles released a viral prom makeup tutorial, offering tips and tricks that resonated with high schoolers nationwide.",
-        month: "April 2025",
-        origin: "YouTube, TikTok"
-    },
-    {
-        title: "Oh Who Is You Meme",
-        context: "A viral TikTok soundbite used to humorously call out unexpected or audacious behavior, often accompanied by exaggerated reactions.",
-        month: "March 2025",
-        origin: "TikTok"
-    },
-    {
-        title: "You Handled It So Well Sarcasm",
-        context: "A sarcastic phrase employed to mock overreactions or dramatic responses, becoming a staple in reaction videos and commentaries.",
-        month: "April 2025",
-        origin: "TikTok, Twitter"
-    },
-    {
-        title: "Imagine Not Liking Me Confidence Trend",
-        context: "A self-assured statement turned meme, used to showcase personal achievements or glow-ups, often in a humorous context.",
-        month: "April 2025",
-        origin: "Instagram, TikTok"
-    },
-    {
-        title: "Graduation Season Tips & Memes",
-        context: "A surge of content offering advice for post-grad life, interspersed with memes about the uncertainties of adulthood.",
-        month: "May 2025",
-        origin: "TikTok, Reddit"
-    },
-    {
-        title: "Butterfly Effect Reflection Posts",
-        context: "Users share pivotal moments that led to significant life changes, emphasizing the impact of small decisions.",
-        month: "April-May 2025",
-        origin: "Instagram, Twitter"
-    },
-    {
-        title: "The Photo I Hesitated to Post Challenge",
-        context: "A trend encouraging users to share vulnerable or previously withheld photos, promoting authenticity and self-acceptance.",
-        month: "May 2025",
-        origin: "Instagram, TikTok"
-    },
-    {
-        title: "Jessie Intro Parodies",
-        context: "Creative reinterpretations of the Disney Channel's 'Jessie' theme song, often used to introduce personal stories or skits.",
-        month: "April 2025",
-        origin: "TikTok"
-    },
-    {
-        title: "Where's Your Head At UFC Remix",
-        context: "A mashup of Basement Jaxx's song with UFC fight clips, creating a high-energy meme format for various intense scenarios.",
-        month: "April 2025",
-        origin: "TikTok, YouTube"
-    },
-    {
-        title: "Judas New Choreography Challenge",
-        context: "A resurgence of Lady Gaga's 'Judas' with new dance routines, sparking widespread participation in dance challenges.",
-        month: "April 2025",
-        origin: "TikTok"
-    },
-    {
-        title: "Summer 2025 Aesthetic Trends",
-        context: "A blend of nostalgic and futuristic fashion styles, with influencers showcasing unique summer looks and accessories.",
-        month: "May 2025",
-        origin: "Instagram, TikTok"
-    },
-    {
-        title: "Perhaps Not Polite Rejection Meme",
-        context: "A humorous way to decline offers or ideas, often used in memes to depict gentle refusals.",
-        month: "April 2025",
-        origin: "Twitter, Reddit"
-    },
-    {
-        title: "Walking Past My Dog Reaction Videos",
-        context: "Owners film their dogs' reactions as they walk past them, capturing humorous and heartwarming responses.",
-        month: "April 2025",
-        origin: "TikTok"
-    },
-    {
-        title: "Expedition 33 Game Release Hype",
-        context: "Anticipation builds for the release of 'Expedition 33,' a sci-fi adventure game praised for its immersive storytelling.",
-        month: "May 2025",
-        origin: "Gaming forums, YouTube"
-    },
-    {
-        title: "1 Gorilla vs. 100 Men Debate",
-        context: "A hypothetical battle scenario sparks debates and memes about strategy and outcomes.",
-        month: "April 2025",
-        origin: "Reddit, Twitter"
-    },
-    {
-        title: "Taurus Season Celebrations",
-        context: "Content celebrating Taurus traits, including memes, horoscopes, and birthday shoutouts.",
-        month: "April-May 2025",
-        origin: "Instagram, TikTok"
-    },
-    {
-        title: "You Season 5 Release Discussions",
-        context: "Fans dissect plot twists and character developments from the latest season of the thriller series 'You.'",
-        month: "April 2025",
-        origin: "Netflix, Reddit"
-    },
-    {
-        title: "I'm So Hungry I Could Eat... Fill-in-the-Blank Meme",
-        context: "A humorous meme format where users exaggerate hunger levels with absurd or unexpected completions.",
-        month: "April 2025",
-        origin: "Twitter, TikTok"
-    }
-];
-
-document.addEventListener("DOMContentLoaded", function() {
-    console.log("DOM fully loaded");
-    
-    // Get DOM elements
-    const trendButton = document.getElementById("trendButton");
-    const buttonText = trendButton.querySelector(".button-text");
-    const trendCard = document.getElementById("trendCard");
-    const idleMessage = document.getElementById("idleMessage");
-    const refreshLink = document.getElementById("refreshLink");
-    
-    // Add refresh functionality to the PULSE logo
-    refreshLink.addEventListener("click", function() {
-        window.location.reload();
-    });
-    
-    let isFirstClick = true;
-    let idleTimer;
-    let userInteracted = false;
-    
-    // Track recently shown trends
-    let recentTrends = [];
-    const maxRecentTrends = 5;
-    
-    // Add event listeners
-    trendButton.addEventListener("click", function() {
-        console.log("Button clicked");
-        userInteracted = true;
-        
-        if (idleMessage.classList.contains("visible")) {
-            idleMessage.classList.remove("visible");
-            idleMessage.classList.add("hidden");
-        }
-        
-        showRandomTrend();
-        
-        // Change button text after first click
-        if (isFirstClick) {
-            isFirstClick = false;
-            buttonText.textContent = "🔁 HIT ME AGAIN";
-        }
-        
-        // Reset idle timer
-        resetIdleTimer();
-    });
-    
-    // Function to get a non-repeating random trend
-    function getNonRepeatingTrend() {
-        // If we have fewer than 6 total trends, handle differently
-        if (trendsData.length <= maxRecentTrends + 1) {
-            // If we've shown all trends, reset the recent list
-            if (recentTrends.length >= trendsData.length) {
-                // Keep only the most recent trend to avoid immediate repeat
-                recentTrends = recentTrends.slice(-1);
-            }
-            
-            // Find available trends (those not in recent list)
-            const availableTrends = trendsData.filter(trend => 
-                !recentTrends.some(recent => recent.title === trend.title)
-            );
-            
-            // If no available trends, use the oldest in our recent list
-            if (availableTrends.length === 0) {
-                // Remove oldest trend from recent list
-                const oldestTrend = recentTrends.shift();
-                return oldestTrend;
-            }
-            
-            // Return a random available trend
-            return availableTrends[Math.floor(Math.random() * availableTrends.length)];
-        } 
-        // Normal case: we have more than 6 trends total
-        else {
-            // Get indices of recent trends
-            const recentIndices = recentTrends.map(trend => 
-                trendsData.findIndex(t => t.title === trend.title)
-            );
-            
-            // Filter out recent indices
-            let availableIndices = [];
-            for (let i = 0; i < trendsData.length; i++) {
-                if (!recentIndices.includes(i)) {
-                    availableIndices.push(i);
-                }
-            }
-            
-            // Get random index from available indices
-            const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-            return trendsData[randomIndex];
-        }
-    }
-    
-    // Function to show a random trend
-    function showRandomTrend() {
-        console.log("showRandomTrend function called");
-        
-        // Hide the card first if it's the first click
-        if (trendCard.classList.contains("hidden")) {
-            trendCard.classList.remove("hidden");
-        } else {
-            // Fade out effect
-            trendCard.classList.remove("visible");
-        }
-        
-        // Also hide the elaboration interface
-        const trendElaboration = document.getElementById('trendElaboration');
-        trendElaboration.classList.remove("visible");
-        trendElaboration.classList.add("hidden");
-        
-        setTimeout(function() {
-            // Get non-repeating random trend
-            const randomTrend = getNonRepeatingTrend();
-            console.log("Selected trend:", randomTrend);
-            
-            // Add to recent trends
-            recentTrends.push(randomTrend);
-            
-            // Keep only the most recent 5
-            if (recentTrends.length > maxRecentTrends) {
-                recentTrends.shift();
-            }
-            
-            console.log("Recent trends:", recentTrends.map(t => t.title));
-            
-            // Update content
-            document.getElementById("trendTitle").textContent = randomTrend.title;
-            document.getElementById("trendContext").textContent = randomTrend.context;
-            document.getElementById("trendMonth").textContent = randomTrend.month;
-            document.getElementById("trendOrigin").textContent = randomTrend.origin;
-            
-            // Fade in effect
-            trendCard.classList.add("visible");
-            
-            // Show elaboration interface
-            elaborationSystem.showElaborationInterface(randomTrend);
-        }, 400);
-    }
-    
-    // Function to set up idle timer
-    function resetIdleTimer() {
-        clearTimeout(idleTimer);
-        
-        // Set up new idle timer (5 seconds)
-        idleTimer = setTimeout(function() {
-            if (!userInteracted) {
-                // Show idle message
-                idleMessage.classList.remove("hidden");
-                idleMessage.classList.add("visible");
-                
-                // Show a random trend after a short delay
-                setTimeout(function() {
-                    showRandomTrend();
-                    
-                    // Change button text if it's still the first time
-                    if (isFirstClick) {
-                        isFirstClick = false;
-                        buttonText.textContent = "🔁 HIT ME AGAIN";
-                    }
-                }, 1500);
-            }
-            userInteracted = false;
-        }, 5000);
-    }
-    
-    // Initialize idle timer
-    resetIdleTimer();
-});
-
-// AI Elaboration System
-function initializeElaborationSystem() {
-  const chatInput = document.getElementById('chatInput');
-  const sendButton = document.getElementById('sendQuestion');
-  const chatMessages = document.getElementById('chatMessages');
-  const trendElaboration = document.getElementById('trendElaboration');
-  const suggestionChips = document.querySelectorAll('.suggestion-chip');
+document.addEventListener('DOMContentLoaded', function() {
+  // DOM Elements
+  const chatContainer = document.getElementById('chatContainer');
+  const userInput = document.getElementById('userInput');
+  const sendButton = document.getElementById('sendButton');
+  const hitMeAgainButton = document.getElementById('hitMeAgainButton');
+  const hitMeAgainContainer = document.getElementById('hitMeAgainContainer');
+  const suggestionChips = document.getElementById('suggestionChips');
+  const savedTrendsContainer = document.getElementById('savedTrends');
+  const newChatButton = document.getElementById('newChatButton');
+  const toggleSidebarButton = document.getElementById('toggleSidebarButton');
+  const mobileMenuButton = document.getElementById('mobileMenuButton');
+  const sidebar = document.getElementById('sidebar');
+  const mainContent = document.querySelector('.main-content');
+  const inputContainer = document.querySelector('.input-container');
   
-  let currentTrend = null;
+  // State variables
+  let savedTrends = JSON.parse(localStorage.getItem('savedTrends')) || [];
+  let currentConversationId = Date.now().toString();
+  let userInteracted = false;
+  let idleTimer = null;
+  let lastUserMessage = '';
+  let lastScrollPosition = 0;
   
-  // Show elaboration interface after trend is displayed
-  function showElaborationInterface(trend) {
-    currentTrend = trend;
-    
-    // Clear previous messages
-    chatMessages.innerHTML = '';
-    
-    // Show the interface with delay
-    setTimeout(() => {
-      trendElaboration.classList.remove('hidden');
+  // Your existing trend data
+  const trendsData = [
+      {
+          title: "Mother's Day Gifting Revolution",
+          context: "A surge in AI-powered gift suggestions, with smart bird feeders and personalized jewelry topping the charts.",
+          month: "April-May 2025",
+          origin: "TikTok, Instagram, E-commerce"
+      },
+      {
+          title: "POV: You're Being Mugged Meme",
+          context: "A viral TikTok trend where creators humorously reenact exaggerated mugging scenarios, often with unexpected twists.",
+          month: "March 2025",
+          origin: "TikTok"
+      },
+      {
+          title: "KATSEYE's Gnarly Release",
+          context: "The surprise drop of KATSEYE's 'Gnarly' has sparked a wave of reaction videos and dance challenges across platforms.",
+          month: "February 2025",
+          origin: "TikTok, Instagram, YouTube"
+      }
+      // Add the rest of your trends here
+  ];
+  
+  // Keep track of recently shown trends to avoid repetition
+  const recentTrends = [];
+  const maxRecentTrends = 5;
+  
+  // Initialize the app
+  function init() {
+      // Set up event listeners
+      userInput.addEventListener('keydown', handleInputKeydown);
+      userInput.addEventListener('input', autoResizeTextarea);
+      sendButton.addEventListener('click', handleSendMessage);
+      hitMeAgainButton.addEventListener('click', generateNewTrend);
+      newChatButton.addEventListener('click', startNewConversation);
+      toggleSidebarButton.addEventListener('click', toggleSidebar);
+      if (mobileMenuButton) {
+          mobileMenuButton.addEventListener('click', toggleSidebar);
+      }
+      
+      // Add event listeners to suggestion chips
+      document.querySelectorAll('.suggestion-chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+              userInput.value = chip.dataset.prompt;
+              userInput.focus();
+              autoResizeTextarea();
+          });
+      });
+      
+      // Save scroll position when scrolling
+      chatContainer.addEventListener('scroll', () => {
+          lastScrollPosition = chatContainer.scrollTop;
+      });
+      
+      // Handle window resize
+      window.addEventListener('resize', handleResize);
+      
+      // Handle escape key to clear input
+      document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+              userInput.value = '';
+              userInput.style.height = 'auto';
+              userInput.blur();
+          }
+      });
+      
+      // Load saved trends into sidebar
+      renderSavedTrends();
+      
+      // Start idle timer
+      resetIdleTimer();
+      
+      // Show hit me again button after a delay
       setTimeout(() => {
-        trendElaboration.classList.add('visible');
-      }, 100);
-    }, 800);
+          hitMeAgainContainer.classList.add('visible');
+      }, 3000);
+      
+      // Initial resize check
+      handleResize();
   }
   
-  // Add event listeners
-  sendButton.addEventListener('click', () => {
-    const question = chatInput.value.trim();
-    if (question) {
-      askQuestion(question);
-      chatInput.value = '';
-    }
-  });
-  
-  chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      const question = chatInput.value.trim();
-      if (question) {
-        askQuestion(question);
-        chatInput.value = '';
+  // Handle window resize
+  function handleResize() {
+      if (window.innerWidth <= 1023) {
+          sidebar.classList.add('sidebar-collapsed');
+          mainContent.classList.add('sidebar-hidden');
+          inputContainer.classList.add('sidebar-hidden');
+      } else {
+          if (!sidebar.classList.contains('sidebar-collapsed')) {
+              mainContent.classList.remove('sidebar-hidden');
+              inputContainer.classList.remove('sidebar-hidden');
+          }
       }
-    }
-  });
+  }
   
-  // Add event listeners to suggestion chips
-  suggestionChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      const question = chip.dataset.question;
-      askQuestion(question);
-    });
-  });
+  // Handle input keydown events
+  function handleInputKeydown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleSendMessage();
+      } else if (e.key === 'ArrowUp' && userInput.value === '') {
+          // Fill with last message for editing
+          userInput.value = lastUserMessage;
+          // Place cursor at the end
+          setTimeout(() => {
+              userInput.selectionStart = userInput.selectionEnd = userInput.value.length;
+              autoResizeTextarea();
+          }, 0);
+      }
+      
+      userInteracted = true;
+      resetIdleTimer();
+  }
   
-  // Function to ask a question
-  function askQuestion(question) {
-    // Add user message to chat
-    addMessage(question, 'user');
-    
-    // Get AI response
-    getAIResponse(question, currentTrend)
-      .then(response => {
-        // Add AI response to chat
-        addMessage(response, 'ai');
-      })
-      .catch(error => {
-        console.error('Error getting AI response:', error);
-        addMessage('Sorry, I had trouble answering that question. Please try again.', 'ai');
+  // Auto-resize textarea as user types
+  function autoResizeTextarea() {
+      userInput.style.height = 'auto';
+      userInput.style.height = (userInput.scrollHeight) + 'px';
+  }
+  
+  // Handle sending a message
+  function handleSendMessage() {
+      const message = userInput.value.trim();
+      if (!message) return;
+      
+      // Save last message for up-arrow recall
+      lastUserMessage = message;
+      
+      // Add user message to chat
+      addMessageToChat(message, 'user');
+      
+      // Clear input
+      userInput.value = '';
+      userInput.style.height = 'auto';
+      
+      // Process the message
+      processUserMessage(message);
+      
+      // Hide hit me again button when user sends a message
+      hitMeAgainContainer.classList.remove('visible');
+  }
+  
+  // Process user message and generate response
+  function processUserMessage(message) {
+      // Check if it's a request for a new trend
+      if (message.toLowerCase().includes('trend') || 
+          message.toLowerCase().includes('show me') || 
+          message.toLowerCase().includes('what\'s popular') ||
+          message.toLowerCase().includes('hit me')) {
+          
+          // Generate a trend
+          generateNewTrend();
+      } else {
+          // Show typing indicator
+          showTypingIndicator();
+          
+          // Get AI response about trends in general
+          setTimeout(() => {
+              removeTypingIndicator();
+              
+              const responses = [
+                  "I can show you trending topics from 2025. Just ask for a specific trend or say 'hit me again' for a random one.",
+                  "I'm designed to tell you about future trends. Ask me to show you a trend or something specific about trending topics.",
+                  "Want to know what's trending in 2025? Just ask for a trend or a specific category like fashion or TikTok.",
+                  "I can provide information about trending topics from 2025. What kind of trends are you interested in?"
+              ];
+              
+              const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+              addMessageToChat(randomResponse, 'ai');
+              
+              // Show suggestion chips
+              updateSuggestionChips([
+                  "Show me a trend",
+                  "What's trending on TikTok?",
+                  "Give me a fashion trend"
+              ]);
+              
+              // Show hit me again button after a delay
+              setTimeout(() => {
+                  hitMeAgainContainer.classList.add('visible');
+              }, 2000);
+          }, 1500);
+      }
+  }
+  
+  // Generate a new trend
+  function generateNewTrend() {
+      // Show typing indicator
+      showTypingIndicator();
+      
+      // Get a non-repeating random trend
+      const randomTrend = getNonRepeatingTrend();
+      
+      // Add to recent trends
+      recentTrends.push(randomTrend);
+      
+      // Keep only the most recent 5
+      if (recentTrends.length > maxRecentTrends) {
+          recentTrends.shift();
+      }
+      
+      // After a short delay, show the trend
+      setTimeout(() => {
+          removeTypingIndicator();
+          addTrendToChat(randomTrend);
+          
+          // Save trend to history
+          saveTrendToHistory(randomTrend);
+          
+          // Update suggestion chips with follow-up questions
+          updateSuggestionChips([
+              `Why is ${randomTrend.title} trending?`,
+              "Show me another trend",
+              `Similar trends to this`
+          ]);
+      }, 1500);
+  }
+  
+  // Get a non-repeating random trend
+  function getNonRepeatingTrend() {
+      // Filter out recently shown trends
+      const availableTrends = trendsData.filter(trend => 
+          !recentTrends.some(recentTrend => recentTrend.title === trend.title)
+      );
+      
+      // If all trends have been shown recently, just pick a random one
+      if (availableTrends.length === 0) {
+          return trendsData[Math.floor(Math.random() * trendsData.length)];
+      }
+      
+      // Otherwise, pick a random trend from the available ones
+      return availableTrends[Math.floor(Math.random() * availableTrends.length)];
+  }
+  
+  // Add a message to the chat
+  function addMessageToChat(text, type) {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', `${type}-message`);
+      
+      // Check if the message contains a video link
+      if (text.includes('[VIDEO]')) {
+          const parts = text.split('[VIDEO]');
+          const beforeVideo = parts[0];
+          const videoUrl = parts[1].split(' ')[0]; // Extract the URL
+          const afterVideo = parts[1].substring(videoUrl.length);
+          
+          messageElement.innerHTML = `
+              <p>${beforeVideo}</p>
+              <div class="video-embed">
+                  <iframe src="${videoUrl}" frameborder="0" allowfullscreen></iframe>
+              </div>
+              <p>${afterVideo}</p>
+          `;
+      } else {
+          messageElement.textContent = text;
+      }
+      
+      chatContainer.appendChild(messageElement);
+      
+      // Add animation class after a small delay (for transition effect)
+      setTimeout(() => {
+          messageElement.classList.add('visible');
+      }, 10);
+      
+      // Scroll to bottom
+      scrollToBottom();
+  }
+  
+  // Add a trend to the chat
+  function addTrendToChat(trend) {
+      const trendElement = document.createElement('div');
+      trendElement.classList.add('trend-card');
+      
+      trendElement.innerHTML = `
+          <h3 class="trend-title">${trend.title}</h3>
+          <p class="trend-context">${trend.context}</p>
+          <div class="trend-meta">
+              <div class="meta-item">
+                  <span class="meta-label">WHEN:</span>
+                  <span>${trend.month}</span>
+              </div>
+              <div class="meta-item">
+                  <span class="meta-label">WHERE:</span>
+                  <span>${trend.origin}</span>
+              </div>
+          </div>
+          <div class="follow-up-buttons">
+              <button class="follow-up-btn" data-question="Why is this trending?">Why is this trending?</button>
+              <button class="follow-up-btn" data-question="Show me examples">Show me examples</button>
+              <button class="share-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                  Share
+              </button>
+          </div>
+      `;
+      
+      // Add event listeners to follow-up buttons
+      trendElement.querySelectorAll('.follow-up-btn').forEach(button => {
+          button.addEventListener('click', () => {
+              const question = button.dataset.question;
+              userInput.value = question + ' ' + trend.title;
+              handleSendMessage();
+          });
+      });
+      
+      // Add event listener to share button
+      trendElement.querySelector('.share-btn').addEventListener('click', () => {
+          shareTrend(trend);
+      });
+      
+      chatContainer.appendChild(trendElement);
+      
+      // Add animation class after a small delay (for transition effect)
+      setTimeout(() => {
+          trendElement.classList.add('visible');
+      }, 10);
+      
+      // Scroll to bottom
+      scrollToBottom();
+  }
+  
+  // Show typing indicator
+  function showTypingIndicator() {
+      const typingElement = document.createElement('div');
+      typingElement.classList.add('message', 'ai-message', 'typing-indicator');
+      typingElement.innerHTML = `
+          <div class="loading-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+          </div>
+      `;
+      chatContainer.appendChild(typingElement);
+      
+      // Scroll to bottom
+      scrollToBottom();
+  }
+  
+  // Remove typing indicator
+  function removeTypingIndicator() {
+      const typingElement = document.querySelector('.typing-indicator');
+      if (typingElement) {
+          chatContainer.removeChild(typingElement);
+      }
+  }
+  
+  // Scroll to bottom of chat
+  function scrollToBottom() {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      lastScrollPosition = chatContainer.scrollTop;
+  }
+  
+  // Update suggestion chips
+  function updateSuggestionChips(suggestions) {
+      suggestionChips.innerHTML = '';
+      
+      suggestions.forEach(suggestion => {
+          const chip = document.createElement('button');
+          chip.classList.add('suggestion-chip');
+          chip.textContent = suggestion;
+          chip.dataset.prompt = suggestion;
+          
+          chip.addEventListener('click', () => {
+              userInput.value = suggestion;
+              userInput.focus();
+              autoResizeTextarea();
+          });
+          
+          suggestionChips.appendChild(chip);
       });
   }
   
-  // Function to add a message to the chat
-  function addMessage(text, sender) {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message', `${sender}-message`);
-    
-    // Process text for any video embeds
-    if (sender === 'ai' && text.includes('[VIDEO]')) {
-      // Extract video content
-      const parts = text.split('[VIDEO]');
-      messageElement.innerHTML = parts[0];
-      
-      // Create video embed if present
-      if (parts.length > 1 && parts[1].includes('youtube.com')) {
-        const videoUrl = parts[1].trim();
-        const videoEmbed = document.createElement('div');
-        videoEmbed.classList.add('video-embed');
-        videoEmbed.innerHTML = `
-          <iframe 
-            width="100%" 
-            height="200" 
-            src="${videoUrl.replace('watch?v=', 'embed/')}" 
-            frameborder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowfullscreen>
-          </iframe>
-        `;
-        messageElement.appendChild(videoEmbed);
-        
-        // Add any remaining text
-        if (parts.length > 2) {
-          const remainingText = document.createElement('p');
-          remainingText.textContent = parts.slice(2).join('');
-          messageElement.appendChild(remainingText);
-        }
-      } else {
-        messageElement.textContent = text;
+  // Show toast notification
+  function showToast(message) {
+      // Remove any existing toasts
+      const existingToast = document.querySelector('.toast-notification');
+      if (existingToast) {
+          document.body.removeChild(existingToast);
       }
-    } else {
-      messageElement.textContent = text;
-    }
-    
-    chatMessages.appendChild(messageElement);
-    
-    // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+      
+      // Create new toast
+      const toast = document.createElement('div');
+      toast.classList.add('toast-notification');
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      // Show the toast
+      setTimeout(() => {
+          toast.classList.add('toast-show');
+      }, 10);
+      
+      // Hide and remove after 3 seconds
+      setTimeout(() => {
+          toast.classList.remove('toast-show');
+          toast.classList.add('toast-hide');
+          setTimeout(() => {
+              document.body.removeChild(toast);
+          }, 300);
+      }, 3000);
   }
   
-  // Function to get AI response (real API implementation)
-  async function getAIResponse(question, trend) {
-    try {
-      // Show loading indicator
-      const loadingMessage = document.createElement('div');
-      loadingMessage.classList.add('message', 'ai-message', 'loading-message');
-      loadingMessage.textContent = 'Thinking...';
-      chatMessages.appendChild(loadingMessage);
-      
-      // Prepare the data to send to your API
-      const requestData = {
-        question: question,
-        trend: {
+  // Save trend to history
+  function saveTrendToHistory(trend) {
+      // Create a new saved trend item
+      const savedTrend = {
+          id: Date.now().toString(),
+          conversationId: currentConversationId,
           title: trend.title,
-          context: trend.context,
-          month: trend.month,
-          origin: trend.origin
-        }
+          trend: trend,
+          timestamp: Date.now()
       };
       
-      // Try to call the real AI API first
-      try {
-        const response = await fetch('http://localhost:3000/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(requestData)
-        });
-        
-        // If successful, use the real AI response
-        if (response.ok) {
-          const data = await response.json();
-          
-          // Remove loading indicator
-          const loadingElement = document.querySelector('.loading-message');
-          if (loadingElement) {
-            chatMessages.removeChild(loadingElement);
-          }
-          
-          return data.response;
-        }
-        
-        // If real API fails, fall back to mock API
-        throw new Error('Real API failed, falling back to mock');
-      } catch (realApiError) {
-        console.warn('Falling back to mock API:', realApiError);
-        
-        // Call the mock API endpoint as fallback
-        const mockResponse = await fetch('http://localhost:3000/api/chat/mock', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(requestData)
-        });
-        
-        if (!mockResponse.ok) {
-          throw new Error(`Mock API error: ${mockResponse.status}`);
-        }
-        
-        const mockData = await mockResponse.json();
-        
-        // Remove loading indicator
-        const loadingElement = document.querySelector('.loading-message');
-        if (loadingElement) {
-          chatMessages.removeChild(loadingElement);
-        }
-        
-        return mockData.response;
-      }
-    } catch (error) {
-      console.error('Error fetching AI response:', error);
+      // Add to saved trends
+      savedTrends.unshift(savedTrend);
       
-      // Remove loading indicator
-      const loadingElement = document.querySelector('.loading-message');
-      if (loadingElement) {
-        chatMessages.removeChild(loadingElement);
+      // Keep only the most recent 20
+      if (savedTrends.length > 20) {
+          savedTrends.pop();
       }
       
-      return 'Sorry, I encountered an error while processing your question. Please try again later.';
-    }
+      // Save to localStorage
+      localStorage.setItem('savedTrends', JSON.stringify(savedTrends));
+      
+      // Update sidebar
+      renderSavedTrends();
   }
   
-  // Return public methods
-  return {
-    showElaborationInterface
-  };
-}
-
-// Modify your showRandomTrend function to include the elaboration system
-// First, initialize the elaboration system
-const elaborationSystem = initializeElaborationSystem(); 
+  // Render saved trends in sidebar
+  function renderSavedTrends() {
+      savedTrendsContainer.innerHTML = '';
+      
+      if (savedTrends.length === 0) {
+          const emptyMessage = document.createElement('div');
+          emptyMessage.classList.add('empty-trends-message');
+          emptyMessage.textContent = 'No saved trends yet';
+          savedTrendsContainer.appendChild(emptyMessage);
+          return;
+      }
+      
+      savedTrends.forEach(item => {
+          const trendElement = document.createElement('div');
+          trendElement.classList.add('saved-trend-item');
+          if (item.conversationId === currentConversationId) {
+              trendElement.classList.add('active');
+          }
+          
+          // Format the date
+          const date = new Date(item.timestamp);
+          const formattedDate = date.toLocaleDateString(undefined, { 
+              month: 'short', 
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+          });
+          
+          trendElement.innerHTML = `
+              <div class="saved-trend-title">${item.title}</div>
+              <div class="saved-trend-time">${formattedDate}</div>
+          `;
+          
+          trendElement.addEventListener('click', () => {
+              loadSavedTrend(item);
+          });
+          
+          savedTrendsContainer.appendChild(trendElement);
+      });
+  }
+  
+  // Load a saved trend
+  function loadSavedTrend(trendItem) {
+      // Start a new conversation with this trend
+      startNewConversation();
+      currentConversationId = trendItem.conversationId;
+      
+      // After a short delay, add the trend to the chat
+      setTimeout(() => {
+          addTrendToChat(trendItem.trend);
+          
+          // Update suggestion chips
+          updateSuggestionChips([
+              `Why is ${trendItem.trend.title} trending?`,
+              "Show me another trend",
+              `Similar trends to this`
+          ]);
+          
+          // Update active state in sidebar
+          renderSavedTrends();
+      }, 300);
+      
+      // On mobile, close sidebar
+      if (window.innerWidth <= 1023) {
+          toggleSidebar();
+      }
+  }
+  
+  // Start a new conversation
+  function startNewConversation() {
+      currentConversationId = Date.now().toString();
+      chatContainer.innerHTML = '';
+      
+      // Add welcome message
+      const welcomeMessage = document.createElement('div');
+      welcomeMessage.classList.add('message', 'system-message');
+      welcomeMessage.innerHTML = '<p>Welcome to PULSE. Discover trending topics or ask questions about trends.</p>';
+      chatContainer.appendChild(welcomeMessage);
+      
+      // Show hit me again button
+      setTimeout(() => {
+          hitMeAgainContainer.classList.add('visible');
+      }, 1000);
+      
+      // Reset suggestion chips
+      updateSuggestionChips([
+          "Show me a trend",
+          "What's trending on TikTok?",
+          "Give me a fashion trend"
+      ]);
+      
+      // On mobile, close sidebar
+      if (window.innerWidth <= 768) {
+          sidebar.classList.add('sidebar-collapsed');
+      }
+  }
+  
+  // Toggle sidebar
+  function toggleSidebar() {
+      sidebar.classList.toggle('sidebar-collapsed');
+      sidebar.classList.toggle('sidebar-visible');
+      mainContent.classList.toggle('sidebar-hidden');
+      inputContainer.classList.toggle('sidebar-hidden');
+  }
+  
+  // Share a trend
+  function shareTrend(trend) {
+      // Create a shareable text
+      const shareText = `PULSE Trend Alert: ${trend.title}\n\n${trend.context}\n\nWhen: ${trend.month}\nWhere: ${trend.origin}\n\nDiscover more at PULSE`;
+      
+      // Try to use the Web Share API if available
+      if (navigator.share) {
+          navigator.share({
+              title: 'PULSE Trend Alert',
+              text: shareText,
+              url: window.location.href
+          })
+          .catch(error => {
+              console.error('Error sharing:', error);
+              fallbackShare();
+          });
+      } else {
+          fallbackShare();
+      }
+      
+      // Fallback to clipboard copy
+      function fallbackShare() {
+          navigator.clipboard.writeText(shareText)
+              .then(() => {
+                  showToast('Copied to clipboard!');
+              })
+              .catch(err => {
+                  console.error('Failed to copy text: ', err);
+                  showToast('Unable to copy to clipboard');
+              });
+      }
+  }
+  
+  // Reset idle timer
+  function resetIdleTimer() {
+      clearTimeout(idleTimer);
+      
+      // Set up new idle timer (10 seconds)
+      idleTimer = setTimeout(() => {
+          if (!hitMeAgainContainer.classList.contains('visible')) {
+              hitMeAgainContainer.classList.add('visible');
+          }
+      }, 10000);
+  }
+  
+  // Initialize the app
+  init();
+});

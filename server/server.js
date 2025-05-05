@@ -3,7 +3,6 @@ const express = require('express');
 const cors = require('cors');
 const { Anthropic } = require('@anthropic-ai/sdk');
 const app = express();
-const port = 3000;
 
 // Initialize Anthropic with API key from environment variable
 const anthropic = new Anthropic({
@@ -102,7 +101,9 @@ app.post('/api/chat/mock', (req, res) => {
   }, 1000);
 });
 
-// Start the server
+// Use environment variable or default to 3000
+const port = process.env.PORT || 8080;
+
 app.listen(port, () => {
   console.log(`AI server running at http://localhost:${port}`);
 }); 
