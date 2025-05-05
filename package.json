@@ -1,20 +1,22 @@
 {
-  "name": "pulse",
+  "name": "sonar-chat",
   "version": "1.0.0",
-  "description": "AI-powered trend discovery app",
+  "description": "Sleek, mobile-responsive chat interface with Perplexity Sonar API",
   "main": "index.js",
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "cd server && npm start",
-    "client": "http-server -p 3000",
+    "server": "cd server && node server.js",
     "dev": "concurrently \"cd server && npm run dev\" \"http-server -p 3000\"",
+    "client": "http-server -p 3000",
     "install-all": "npm install && cd server && npm install"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "dotenv": "^16.5.0"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "http-server": "^14.1.1"
   }
 }

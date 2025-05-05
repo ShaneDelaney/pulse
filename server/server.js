@@ -22,6 +22,121 @@ const USE_OPENROUTER = OPENROUTER_API_KEY && OPENROUTER_API_KEY.length > 0;
 app.use(cors());
 app.use(express.json());
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'PULSE AI server is running',
+    mode: RESPONSE_MODE
+  });
+});
+
+// Create a new endpoint for the Perplexity Sonar API via OpenRouter
+app.post('/api/sonar', async (req, res) => {
+  try {
+    const { messages, model = "perplexity/sonar-medium-chat" } = req.body;
+    
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Valid messages array is required' });
+    }
+    
+    console.log('Sonar request received for model:', model);
+    
+    if (USE_OPENROUTER) {
+      const response = await fetchSonarResponse(messages, model);
+      return res.json(response);
+    } else {
+      console.log('Falling back to mock response (OpenRouter API key not configured)');
+      return res.json(mockSonarResponse(messages));
+    }
+  } catch (error) {
+    console.error('Error in Sonar API:', error.message);
+    res.status(500).json({ 
+      error: 'Failed to get response', 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
+// Function to fetch response from Perplexity Sonar via OpenRouter
+async function fetchSonarResponse(messages, model) {
+  try {
+    console.log('Sending request to OpenRouter API...');
+    console.log('Request body:', JSON.stringify({
+      model,
+      messages,
+      max_tokens: 1024,
+      temperature: 0.7
+    }));
+    
+    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+      model,
+      messages,
+      max_tokens: 1024,
+      temperature: 0.7
+    }, {
+      headers: {
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://sonar-chat.com",
+        "X-Title": "Sonar Chat"
+      }
+    });
+    
+    console.log('Raw API response structure:', Object.keys(response.data));
+    
+    return response.data;
+  } catch (error) {
+    console.error('OpenRouter API error:', error.message);
+    if (error.response && error.response.data) {
+      console.error('Error details:', error.response.data);
+    } else {
+      console.error('No detailed error response available');
+    }
+    throw new Error(`OpenRouter API error: ${error.message}`);
+  }
+}
+
+// Mock Sonar response for testing or when API key is not available
+function mockSonarResponse(messages) {
+  const lastMessage = messages[messages.length - 1].content;
+  
+  let responseContent = '';
+  
+  if (lastMessage.toLowerCase().includes('trending')) {
+    responseContent = "Based on recent data, the top trending topics today include:\n\n1. **AI-driven climate solutions** - New research showing how AI can optimize renewable energy grids\n\n2. **Space tourism developments** - Recent announcements about civilian space flights\n\n3. **Novel protein structures** - Breakthroughs in protein folding leading to new drug discoveries\n\n4. **Decentralized finance evolution** - New protocols gaining adoption in the DeFi space\n\n5. **Immersive AR experiences** - New applications combining AR with spatial computing";
+  } else if (lastMessage.toLowerCase().includes('summarize')) {
+    responseContent = "**Article Summary:**\n\nThe article discusses the growing integration of artificial intelligence in healthcare diagnostics. Key points include:\n\n- AI systems now achieving 97% accuracy in identifying certain conditions from medical imaging\n- Reduction in diagnostic wait times by up to 60% in pilot programs\n- Concerns about data privacy and the need for human oversight\n- Cost benefits estimated at $15-20 billion annually in the US healthcare system\n- The importance of diverse training data to prevent algorithmic bias\n\nThe author concludes that while AI won't replace healthcare professionals, it will significantly augment their capabilities and improve patient outcomes.";
+  } else if (lastMessage.toLowerCase().includes('sushi') || lastMessage.includes('la')) {
+    responseContent = "Here are the best sushi restaurants in LA according to recent reviews and ratings:\n\n1. **Sushi Ginza Onodera** - High-end omakase experience with fish imported from Japan\n   - Location: West Hollywood\n   - Price: $$$$\n\n2. **Q Sushi** - Authentic Edomae-style sushi in downtown\n   - Location: Downtown LA\n   - Price: $$$$\n\n3. **Sushi Note** - Wine bar and sushi counter with innovative pairings\n   - Location: Sherman Oaks\n   - Price: $$$\n\n4. **Sugarfish** - Consistent quality with their famous 'Trust Me' menu\n   - Multiple locations\n   - Price: $$$\n\n5. **KazuNori** - Specializing in handrolls, from the Sugarfish team\n   - Location: Downtown LA\n   - Price: $$";
+  } else {
+    responseContent = "I'm happy to help with that. Could you provide more details about what you're looking for? I can provide information on current events, explain complex topics, summarize articles, offer recommendations, and answer many other types of questions.";
+  }
+  
+  return {
+    id: `mock-${Date.now()}`,
+    object: "chat.completion",
+    created: Math.floor(Date.now() / 1000),
+    model: "perplexity/sonar-medium-chat-mock",
+    choices: [
+      {
+        index: 0,
+        message: {
+          role: "assistant",
+          content: responseContent
+        },
+        finish_reason: "stop"
+      }
+    ],
+    usage: {
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      total_tokens: 0
+    }
+  };
+}
+
 // Add new endpoint for trend responses using OpenRouter
 app.post('/api/trend', async (req, res) => {
   try {
@@ -99,7 +214,7 @@ app.post('/api/chat', async (req, res) => {
       return handleMockResponse(req, res);
     }
     
-    const { question, trend, context = [] } = req.body;
+    const { question, trend = {}, context = [] } = req.body;
     
     // Determine if we need to search the web
     const needsWebSearch = 
@@ -133,20 +248,20 @@ app.post('/api/chat', async (req, res) => {
       - Focus on factual information about the trend
       - Avoid making up specific details you're unsure about
       
-      ${trend.title ? `
+      ${trend && trend.title ? `
       The user is asking about this trend:
       Title: ${trend.title}
-      Description: ${trend.context}
-      When: ${trend.month}
-      Where: ${trend.origin}
+      Description: ${trend.context || ''}
+      When: ${trend.month || ''}
+      Where: ${trend.origin || ''}
       ` : ''}
       
       ${webSearchResults.length > 0 ? `
       Here are some web search results that might be helpful for answering the query:
       ${webSearchResults.map((result, i) => 
-        `[${i+1}] Title: ${result.title}
-        URL: ${result.link}
-        Snippet: ${result.snippet}`
+        `[${i+1}] Title: ${result.title || ''}
+        URL: ${result.link || ''}
+        Snippet: ${result.snippet || ''}`
       ).join('\n\n')}
       
       If the web search results are relevant to the query, incorporate this information in your response. 
@@ -163,14 +278,14 @@ app.post('/api/chat', async (req, res) => {
     
     // Convert context to the format expected by the AI
     const messages = context.map(item => ({
-      role: item.role,
-      content: item.content
+      role: item.role || 'user',
+      content: item.content || ''
     }));
     
     // Add the current question
     messages.push({
       role: "user",
-      content: question
+      content: question || ''
     });
     
     let aiResponse;
@@ -234,190 +349,165 @@ app.post('/api/chat', async (req, res) => {
 
 // Handle mock responses
 function handleMockResponse(req, res) {
-  const { question, trend = {}, context = [] } = req.body;
-  
-  console.log('Using mock response for:', question);
-  
-  // Simulate processing delay
-  setTimeout(() => {
-    // Generate a mock response
-    const lowerQuestion = question.toLowerCase();
-    let response;
+  try {
+    const { question, trend = {}, context = [] } = req.body;
     
-    if (lowerQuestion.includes('example') || lowerQuestion.includes('show me')) {
-      // Return examples with video embeds when available
-      if (trend && trend.title) {
-        switch(trend.title) {
-          case "POV: You're Being Mugged Meme":
-            response = "Here's a popular example of the mugging POV trend: [VIDEO]https://www.youtube.com/watch?v=dQw4w9WgXcQ These videos typically use humor to subvert expectations about mugging scenarios.";
-            break;
-          
-          case "KATSEYE's Gnarly Release":
-            response = "Here's the official music video for KATSEYE's 'Gnarly': [VIDEO]https://www.youtube.com/watch?v=dQw4w9WgXcQ The song's energetic beat and chaotic visuals helped it go viral.";
-            break;
+    console.log('Using mock response for:', question);
+    
+    // Simulate processing delay
+    setTimeout(() => {
+      // Generate a mock response
+      const lowerQuestion = (question || '').toLowerCase();
+      let response;
+      
+      if (lowerQuestion.includes('example') || lowerQuestion.includes('show me')) {
+        // Return examples with video embeds when available
+        if (trend && trend.title) {
+          switch(trend.title) {
+            case "POV: You're Being Mugged Meme":
+              response = "Here's a popular example of the mugging POV trend: [VIDEO]https://www.youtube.com/watch?v=dQw4w9WgXcQ These videos typically use humor to subvert expectations about mugging scenarios.";
+              break;
             
-          default:
-            response = `While I don't have a specific video example for "${trend.title}", this trend typically features ${trend.context || 'interesting content'} You can find many examples by searching the hashtag on ${trend.origin ? trend.origin.split(',')[0] : 'social media'}.`;
+            case "KATSEYE's Gnarly Release":
+              response = "Here's the official music video for KATSEYE's 'Gnarly': [VIDEO]https://www.youtube.com/watch?v=dQw4w9WgXcQ The song's energetic beat and chaotic visuals helped it go viral.";
+              break;
+              
+            default:
+              response = `While I don't have a specific video example for "${trend.title || 'this trend'}", this trend typically features ${trend.context || 'interesting content'} You can find many examples by searching the hashtag on ${trend.origin ? trend.origin.split(',')[0] : 'social media'}.`;
+          }
+        } else {
+          response = "Here's a trending example: [VIDEO]https://www.youtube.com/watch?v=dQw4w9WgXcQ This type of content has been going viral recently across multiple platforms.";
         }
-      } else {
-        response = "Here's a trending example: [VIDEO]https://www.youtube.com/watch?v=dQw4w9WgXcQ This type of content has been going viral recently across multiple platforms.";
+      } 
+      else if (lowerQuestion.includes('why') && lowerQuestion.includes('trend')) {
+        if (trend && trend.title) {
+          response = `"${trend.title || 'This trend'}" gained popularity because it resonated with audiences on ${trend.origin || 'social media'} during ${trend.month || 'recent months'}. ${trend.context || ''} The format was easy to participate in, highly shareable, and came at a time when users were looking for this type of content.`;
+        } else {
+          response = "Recent trends gain popularity due to their relatability, shareability, and often because they provide a creative outlet for users. The most successful trends are easy to participate in while allowing for personal expression.";
+        }
       }
-    } 
-    else if (lowerQuestion.includes('why') && lowerQuestion.includes('trend')) {
-      if (trend && trend.title) {
-        response = `"${trend.title}" gained popularity because it resonated with audiences on ${trend.origin || 'social media'} during ${trend.month || 'recent months'}. ${trend.context || ''} The format was easy to participate in, highly shareable, and came at a time when users were looking for this type of content.`;
-      } else {
-        response = "Recent trends gain popularity due to their relatability, shareability, and often because they provide a creative outlet for users. The most successful trends are easy to participate in while allowing for personal expression.";
+      else if (lowerQuestion.includes('who started') || lowerQuestion.includes('origin')) {
+        if (trend && trend.title) {
+          response = `While it's difficult to pinpoint exactly who started "${trend.title || 'this trend'}", it first gained significant traction on ${trend.origin ? trend.origin.split(',')[0] : 'social media'} in ${trend.month || 'recent months'}. ${trend.context || ''} From there, it quickly spread to other platforms as more creators adapted the format.`;
+        } else {
+          response = "Most viral trends begin with a small group of creative users, often on TikTok or Instagram, before being amplified by algorithmic recommendations and celebrity participation. The exact origins can be difficult to trace as trends evolve rapidly.";
+        }
       }
-    }
-    else if (lowerQuestion.includes('who started') || lowerQuestion.includes('origin')) {
-      if (trend && trend.title) {
-        response = `While it's difficult to pinpoint exactly who started "${trend.title}", it first gained significant traction on ${trend.origin ? trend.origin.split(',')[0] : 'social media'} in ${trend.month || 'recent months'}. ${trend.context || ''} From there, it quickly spread to other platforms as more creators adapted the format.`;
-      } else {
-        response = "Most viral trends begin with a small group of creative users, often on TikTok or Instagram, before being amplified by algorithmic recommendations and celebrity participation. The exact origins can be difficult to trace as trends evolve rapidly.";
+      else if (lowerQuestion.includes('search') || lowerQuestion.includes('latest')) {
+        // Simulate web search results for queries asking for fresh information
+        if (trend && trend.title) {
+          response = `Based on the latest information I could find online:
+          
+          [WEB_RESULT]
+          <h3 class="web-result-title">Latest Trends Report - June 2025</h3>
+          <div class="web-result-url">trendanalysis.com</div>
+          <p class="web-result-snippet">${trend.title || 'This trend'} continues to evolve with new creators putting unique spins on the format. The hashtag has now reached over 2 billion views.</p>
+          [/WEB_RESULT]
+          
+          [WEB_RESULT]
+          <h3 class="web-result-title">Cultural Impact Study: Viral Phenomena</h3>
+          <div class="web-result-url">digitalanthropology.edu</div>
+          <p class="web-result-snippet">Researchers note that ${trend.title || 'this trend'} represents a significant shift in how content is consumed and shared across generational divides.</p>
+          [/WEB_RESULT]
+          
+          These findings suggest the trend has had staying power beyond initial expectations, likely due to its adaptability and cross-platform appeal.`;
+        } else {
+          response = `Based on the latest information I could find online:
+          
+          [WEB_RESULT]
+          <h3 class="web-result-title">Latest Social Media Trends - May 2025</h3>
+          <div class="web-result-url">digitalpulse.com</div>
+          <p class="web-result-snippet">The latest trends include AI-generated dance challenges, seamless reality filters, and sustainability-focused content creation, with Gen Z leading adoption.</p>
+          [/WEB_RESULT]
+          
+          [WEB_RESULT]
+          <h3 class="web-result-title">TikTok Trend Report 2025</h3>
+          <div class="web-result-url">tiktoktrends.com</div>
+          <p class="web-result-snippet">Micro-storytelling formats under 15 seconds are dominating the platform, with audio-reactive AR effects seeing a 300% increase in creator adoption.</p>
+          [/WEB_RESULT]
+          
+          These findings indicate that trends are becoming more technically sophisticated while paradoxically emphasizing authenticity and raw creativity.`;
+        }
       }
-    }
-    else if (lowerQuestion.includes('search') || lowerQuestion.includes('latest')) {
-      // Simulate web search results for queries asking for fresh information
-      if (trend && trend.title) {
-        response = `Based on the latest information I could find online:
-        
-        [WEB_RESULT]
-        <h3 class="web-result-title">Latest Trends Report - June 2025</h3>
-        <div class="web-result-url">trendanalysis.com</div>
-        <p class="web-result-snippet">${trend.title} continues to evolve with new creators putting unique spins on the format. The hashtag has now reached over 2 billion views.</p>
-        [/WEB_RESULT]
-        
-        [WEB_RESULT]
-        <h3 class="web-result-title">Cultural Impact Study: Viral Phenomena</h3>
-        <div class="web-result-url">digitalanthropology.edu</div>
-        <p class="web-result-snippet">Researchers note that ${trend.title} represents a significant shift in how content is consumed and shared across generational divides.</p>
-        [/WEB_RESULT]
-        
-        These findings suggest the trend has had staying power beyond initial expectations, likely due to its adaptability and cross-platform appeal.`;
-      } else {
-        response = `Based on the latest information I could find online:
-        
-        [WEB_RESULT]
-        <h3 class="web-result-title">Latest Social Media Trends - May 2025</h3>
-        <div class="web-result-url">digitalpulse.com</div>
-        <p class="web-result-snippet">The latest trends include AI-generated dance challenges, seamless reality filters, and sustainability-focused content creation, with Gen Z leading adoption.</p>
-        [/WEB_RESULT]
-        
-        [WEB_RESULT]
-        <h3 class="web-result-title">TikTok Trend Report 2025</h3>
-        <div class="web-result-url">tiktoktrends.com</div>
-        <p class="web-result-snippet">Micro-storytelling formats under 15 seconds are dominating the platform, with audio-reactive AR effects seeing a 300% increase in creator adoption.</p>
-        [/WEB_RESULT]
-        
-        These findings indicate that trends are becoming more technically sophisticated while paradoxically emphasizing authenticity and raw creativity.`;
+      else {
+        // Generic response for other questions
+        if (trend && trend.title) {
+          response = `About "${trend.title || 'this trend'}": ${trend.context || 'This is a popular trend'} This trend was particularly popular on ${trend.origin || 'social media'} during ${trend.month || 'recent months'}. Is there something specific about it you'd like to know?`;
+        } else {
+          response = `The latest social media trends include AR filters that react to music, 'day in my life' micro-documentaries, and challenges that showcase unexpected talents. These trends are particularly popular on TikTok and Instagram, with creators finding innovative ways to put their personal spin on viral formats.`;
+        }
       }
-    }
-    else {
-      // Generic response for other questions
-      if (trend && trend.title) {
-        response = `About "${trend.title}": ${trend.context || 'This is a popular trend'} This trend was particularly popular on ${trend.origin || 'social media'} during ${trend.month || 'recent months'}. Is there something specific about it you'd like to know?`;
-      } else {
-        response = `The latest social media trends include AR filters that react to music, 'day in my life' micro-documentaries, and challenges that showcase unexpected talents. These trends are particularly popular on TikTok and Instagram, with creators finding innovative ways to put their personal spin on viral formats.`;
-      }
-    }
-    
-    res.json({ response });
-  }, 1000);
+      
+      res.json({ response });
+    }, 1000);
+  } catch (error) {
+    console.error('Error in mock response handler:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate mock response', 
+      details: error.message 
+    });
+  }
 }
 
-// Fallback to mock responses - keeping for backward compatibility
-app.post('/api/chat/mock', (req, res) => {
-  handleMockResponse(req, res);
-});
-
-// Perform web search using SerpAPI or similar
+// Web search function
 async function performWebSearch(query) {
+  if (SEARCH_API_KEY === 'dummy_key') {
+    console.log('Using mock search results for:', query);
+    return getMockSearchResults(query);
+  }
+  
   try {
-    // For development only - return mock results to avoid real API calls
-    if (!SEARCH_API_KEY || SEARCH_API_KEY === 'dummy_key') {
-      return getMockSearchResults(query);
-    }
+    console.log('Performing web search for:', query);
     
-    // For production - use actual SerpAPI with your key
+    // This would be replaced with an actual API call to a search engine API
+    // such as SerpAPI, Google Custom Search, or Bing Search
     const response = await axios.get('https://serpapi.com/search', {
       params: {
         q: query,
         api_key: SEARCH_API_KEY,
-        engine: 'google'
+        engine: 'google',
+        num: 5
       }
     });
     
     if (response.data && response.data.organic_results) {
-      return response.data.organic_results.slice(0, 5); // Return top 5 results
+      return response.data.organic_results.map(result => ({
+        title: result.title,
+        link: result.link,
+        snippet: result.snippet
+      }));
     }
     
     return [];
   } catch (error) {
     console.error('Search API error:', error);
-    return [];
+    return getMockSearchResults(query);
   }
 }
 
-// Mock search results for development
+// Get mock search results when real search is unavailable
 function getMockSearchResults(query) {
-  const cleanQuery = query.toLowerCase();
-  
-  // Mock data for different types of queries
-  if (cleanQuery.includes('tiktok') || cleanQuery.includes('social media')) {
-    return [
-      {
-        title: 'Latest TikTok Trends 2025 - The Digital Pulse',
-        link: 'https://digitalpulse.com/tiktok-trends-2025',
-        snippet: 'The latest TikTok trends include AI-generated dance challenges, seamless reality filters, and sustainability-focused content creation.'
-      },
-      {
-        title: 'How Virtual Reality Reshapes Social Media Engagement',
-        link: 'https://tech-insights.com/vr-social-media',
-        snippet: 'Virtual reality meetups on social platforms have increased 300% in 2025, with users spending an average of 45 minutes in immersive social spaces.'
-      }
-    ];
-  } else if (cleanQuery.includes('fashion') || cleanQuery.includes('clothing')) {
-    return [
-      {
-        title: 'Sustainable Fashion Leads 2025 Runway Shows',
-        link: 'https://fashionfuture.com/sustainable-2025',
-        snippet: 'Recycled materials and zero-waste manufacturing processes dominated fashion weeks globally, with major brands pledging 50% sustainable materials by 2026.'
-      },
-      {
-        title: 'Digital Fashion NFTs Generate $2.3 Billion Market',
-        link: 'https://metaverse-style.com/digital-fashion-market',
-        snippet: 'Digital-only clothing for avatars and AR experiences has created a thriving market, with luxury brands generating significant revenue from virtual couture.'
-      }
-    ];
-  } else {
-    return [
-      {
-        title: 'Internet Culture Report 2025 - Emerging Trends Analysis',
-        link: 'https://trendwatcher.com/internet-culture-2025',
-        snippet: 'The latest analysis shows microcultures forming around niche interests, with specialized communities growing 200% faster than mainstream platforms.'
-      },
-      {
-        title: 'How Gen Alpha Is Redefining Digital Entertainment',
-        link: 'https://futuremedia.com/gen-alpha-entertainment',
-        snippet: 'Interactive storytelling and creator-led content dominates preferences for under-15 audiences, with 78% preferring participatory media experiences.'
-      }
-    ];
-  }
+  return [
+    {
+      title: `Latest Info on: ${query}`,
+      link: 'https://example.com/article1',
+      snippet: `Comprehensive analysis of ${query} showing recent developments and future predictions based on current data trends.`
+    },
+    {
+      title: `${query} - A Deep Dive`,
+      link: 'https://example.com/article2',
+      snippet: `Experts weigh in on ${query}, offering insights into how this trend is reshaping online discourse and consumer behavior in unexpected ways.`
+    },
+    {
+      title: `Why Everyone is Talking About ${query}`,
+      link: 'https://example.com/article3',
+      snippet: `The viral phenomenon of ${query} explained - from its origins on TikTok to mainstream adoption and celebrity endorsements.`
+    }
+  ];
 }
 
-// Endpoint to check if the server is running
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    message: 'PULSE AI server is running', 
-    mode: RESPONSE_MODE
-  });
-});
-
-// Use environment variable or default to 8080
-const port = process.env.PORT || 8080;
-
-app.listen(port, () => {
-  console.log(`PULSE AI server running at http://localhost:${port} (${RESPONSE_MODE} mode)`);
+// Start the server
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`PULSE AI server running at http://localhost:${PORT} (${RESPONSE_MODE} mode)`);
 }); 

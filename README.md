@@ -1,113 +1,94 @@
-# PULSE - AI-Powered Trend Discovery
+# Sonar Chat
 
-A modern, conversation-based trend discovery app that shows internet trends from 2025 with AI-powered explanations.
+A sleek, mobile-responsive chat interface that integrates with the Perplexity Sonar API via OpenRouter. This application replicates the ChatGPT-like experience but uses Perplexity's powerful Sonar model for superior search-augmented conversations.
 
 ## Features
-- ChatGPT-style conversation interface
-- Responsive design for desktop and mobile
-- Sidebar for saved trends history
-- Voice input support (on supported browsers)
-- Web search integration for up-to-date information
-- Mock API responses for offline development
 
-## Getting Started
+- **Minimalist UI**: Clean, distraction-free interface focused on the conversation
+- **Responsive Design**: Works perfectly on desktop and mobile devices
+- **Theme Toggle**: Switch between light and dark themes
+- **Suggestion Chips**: Quick-access suggestion prompts
+- **OpenRouter Integration**: Uses Perplexity Sonar via the OpenRouter API
+- **Secure Backend Proxy**: All API calls go through a secure backend to protect your API key
 
-### Prerequisites
+## Screenshots
+
+![Light Mode](/screenshots/light-mode.png)
+![Dark Mode](/screenshots/dark-mode.png)
+
+## Prerequisites
+
 - Node.js (v14 or newer)
 - npm (v6 or newer)
+- An OpenRouter API key with access to the Perplexity models
 
-### Installation
+## Setup
 
-1. Clone the repository
+1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/pulse.git
-   cd pulse
+   git clone https://github.com/yourusername/sonar-chat.git
+   cd sonar-chat
    ```
 
-2. Install all dependencies (both frontend and backend)
+2. Install dependencies:
    ```
    npm run install-all
    ```
-   
-   Or install manually:
+
+3. Create a `.env.local` file in the root directory with your OpenRouter API key:
    ```
-   npm install
-   cd server
-   npm install
-   cd ..
+   OPENROUTER_API_KEY=your_openrouter_api_key_here
    ```
 
-### Configuration
-
-1. Create a `.env` file in the server directory with your API keys
-
+4. Start the application:
    ```
-   # Server configuration
-   PORT=8080
-
-   # API Keys (replace with your actual keys)
-   ANTHROPIC_API_KEY=your_anthropic_api_key_here
-   SEARCH_API_KEY=your_search_api_key_here
-
-   # Set to "mock" to use mock responses, "api" to use real API
-   RESPONSE_MODE=mock
+   npm start
    ```
 
-   Note: If you don't have API keys, you can leave the default values and the app will use mock responses.
+5. Open your browser and navigate to:
+   ```
+   http://localhost:3000
+   ```
 
-### Running the Application
+## Usage
 
-#### Option 1: Start both frontend and backend with a single command
-```
-npm start
-```
+1. Click "Start a Chat" on the welcome screen
+2. Type your question in the input box or select a suggested prompt
+3. Press Enter or click the send button
+4. The response will appear in the chat thread
+5. Use the "New Chat" button to start a fresh conversation
+6. Toggle between light and dark themes using the theme button
 
-This will start both the frontend server on port 3000 and the backend server on port 8080.
+## Project Structure
 
-#### Option 2: Start servers individually
+- `index.html` - Main HTML file with the UI structure
+- `styles.css` - CSS styles for the application
+- `app.js` - Frontend JavaScript for handling the UI and API calls
+- `server/server.js` - Backend server that proxies requests to OpenRouter
+- `.env.local` - Environment variables file for API keys
 
-Start the backend server:
-```
-cd server
-npm start
-```
+## Development
 
-Start the frontend server (in a separate terminal):
-```
-http-server -p 3000
-```
+To run the application in development mode with hot reloading:
 
-### Development Mode
-
-To run both servers in development mode with auto-restart:
 ```
 npm run dev
 ```
 
-## Accessing the App
+## Deployment
 
-Once both servers are running:
-1. Open your browser to http://localhost:3000
-2. Click on "Show me what's trending" to start exploring trends
-3. Ask questions about trends or request new ones
+For production deployment, you'll need to:
 
-## Troubleshooting
-
-### Common Issues
-
-1. **"Server not available" error**
-   - Make sure the backend server is running at http://localhost:8080
-   - Check that you're not experiencing network issues
-   - Verify the `.env` file has the correct configuration
-
-2. **CORS errors in console**
-   - The frontend and backend must be running on the expected ports
-   - Check that CORS is properly enabled in the server
-
-3. **API connection errors**
-   - If using API mode, verify your API keys are valid
-   - Try switching to mock mode by setting `RESPONSE_MODE=mock` in `.env`
+1. Set up environment variables on your hosting platform
+2. Build and deploy both the frontend and backend components
+3. Configure CORS settings appropriately
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT
+
+## Acknowledgements
+
+- [Perplexity AI](https://www.perplexity.ai/) for their Sonar model
+- [OpenRouter](https://openrouter.ai/) for providing access to various LLMs
+- [Inter Font](https://rsms.me/inter/) for the clean typography
