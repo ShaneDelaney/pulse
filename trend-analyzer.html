@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PULSE AI Trend Analyzer</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Additional variables and styles specific to the trend analyzer */
+        :root {
+            --accent-color-rgb: 79, 70, 229;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --niche-color: #4CAF50;
+            --niche-color-light: rgba(76, 175, 80, 0.1);
+            --tentpole-color: #FF9800;
+            --tentpole-color-light: rgba(255, 152, 0, 0.1);
+        }
+        
+        /* Analyzer container styles */
+        .analyzer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .analyzer-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .analyzer-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--accent-color), #5e81ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .analyzer-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .analyzer-controls {
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .control-group {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .control-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .control-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 0.9rem;
+        }
+        
+        .analyze-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 0.875rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            min-width: 200px;
+        }
+        
+        .analyze-btn:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        .results-container {
+            margin-top: 2rem;
+        }
+        
+        .trend-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .trend-card {
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .trend-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .trend-card.niche {
+            border-top: 4px solid var(--niche-color);
+        }
+        
+        .trend-card.tentpole {
+            border-top: 4px solid var(--tentpole-color);
+        }
+        
+        .trend-card::before {
+            content: attr(data-type);
+            position: absolute;
+            top: 1rem;
+            right: -3rem;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 3rem;
+            transform: rotate(45deg);
+            letter-spacing: 1px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .trend-card.niche::before {
+            background-color: var(--niche-color);
+            color: white;
+        }
+        
+        .trend-card.tentpole::before {
+            background-color: var(--tentpole-color);
+            color: white;
+        }
+        
+        .trend-header {
+            padding: 1.5rem;
+            background-color: var(--primary-bg);
+        }
+        
+        .trend-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .trend-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .trend-confidence {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .high-confidence {
+            background-color: var(--niche-color-light);
+            color: var(--niche-color);
+        }
+        
+        .medium-confidence {
+            background-color: var(--tentpole-color-light);
+            color: var(--tentpole-color);
+        }
+        
+        .trend-details {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .trend-detail {
+            margin-bottom: 1rem;
+        }
+        
+        .trend-detail-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: var(--text-secondary);
+        }
+        
+        .trend-detail-value {
+            font-size: 1rem;
+        }
+        
+        .trend-related-posts {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--secondary-bg);
+        }
+        
+        .trend-related-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .related-post {
+            background-color: var(--primary-bg);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .related-post:hover {
+            background-color: rgba(var(--accent-color-rgb), 0.05);
+        }
+        
+        .related-post:last-child {
+            margin-bottom: 0;
+        }
+        
+        .related-post-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        
+        .related-post-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .related-post-content {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .related-post-user {
+            font-weight: 500;
+            font-size: 0.8rem;
+            margin-bottom: 0.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .related-post-text {
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-height: 1.4;
+        }
+        
+        .view-more-btn {
+            width: 100%;
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
+        }
+        
+        .view-more-btn:hover {
+            background-color: var(--primary-bg);
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .trend-metrics {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background-color: var(--secondary-bg);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .trend-metric {
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 2rem;
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .live-feed-container {
+            margin-top: 2rem;
+        }
+        
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .feed-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .feed-refresh {
+            color: var(--accent-color);
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .feed-posts {
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .feed-post {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .feed-post:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .feed-post.trending {
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .feed-post-badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: rgba(var(--accent-color-rgb), 0.15);
+            color: var(--accent-color);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        
+        .post-timestamp {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 0.75rem;
+            overflow: hidden;
+        }
+        
+        .post-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .post-user-info {
+            flex: 1;
+        }
+        
+        .post-user {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .verified-badge {
+            color: #1da1f2;
+            font-size: 0.8rem;
+        }
+        
+        .post-platform {
+            margin-left: auto;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .post-location {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .post-content {
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+        
+        .post-media {
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+            max-height: 200px;
+        }
+        
+        .post-media img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        
+        .post-hashtags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .post-hashtag {
+            background-color: var(--secondary-bg);
+            padding: 0.25rem 0.5rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .post-hashtag:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .post-hashtag.trending {
+            background-color: rgba(var(--accent-color-rgb), 0.15);
+            border: 1px solid rgba(var(--accent-color-rgb), 0.3);
+        }
+        
+        .post-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .post-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+        }
+        
+        .post-stat:hover {
+            color: var(--accent-color);
+        }
+        
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent-color);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .analyzer-container {
+                padding: 1rem;
+            }
+            
+            .analyzer-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        
+        /* Highlight pulse animation */
+        @keyframes highlight-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(var(--accent-color-rgb), 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(var(--accent-color-rgb), 0); }
+            100% { box-shadow: 0 0 0 0 rgba(var(--accent-color-rgb), 0); }
+        }
+        
+        .highlight-pulse {
+            animation: highlight-pulse 1.5s ease-out 1;
+        }
+        
+        /* Notification styling */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background-color: var(--accent-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="analyzer-container">
+        <a href="index.html" class="nav-back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back to Trend Explorer
+        </a>
+        
+        <div class="analyzer-header">
+            <h1 class="analyzer-title">PULSE AI Trend Analyzer</h1>
+            <p class="analyzer-subtitle">Real-time detection of emerging niche trends and tentpole events from social media data</p>
+        </div>
+        
+        <div class="analyzer-controls">
+            <div class="control-group">
+                <label class="control-label" for="dataSource">Data Source</label>
+                <select class="control-input" id="dataSource">
+                    <option value="sample">Sample Data (Demo)</option>
+                    <option value="twitter">Twitter API</option>
+                    <option value="instagram">Instagram API</option>
+                    <option value="tiktok">TikTok API</option>
+                    <option value="combined">All Platforms</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label" for="timeRange">Time Range</label>
+                <select class="control-input" id="timeRange">
+                    <option value="1h">Last Hour</option>
+                    <option value="6h">Last 6 Hours</option>
+                    <option value="24h" selected>Last 24 Hours</option>
+                    <option value="7d">Last 7 Days</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label" for="trendType">Trend Type</label>
+                <select class="control-input" id="trendType">
+                    <option value="all" selected>All Trends</option>
+                    <option value="niche">Niche Trends Only</option>
+                    <option value="tentpole">Tentpole Events Only</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <button id="analyzeBtn" class="analyze-btn">Analyze Trends</button>
+            </div>
+        </div>
+        
+        <div class="results-container">
+            <h2>Analysis Results</h2>
+            
+            <div class="trend-results" id="trendResults">
+                <!-- Results will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="live-feed-container">
+            <div class="feed-header">
+                <h2 class="feed-title">Live Data Feed</h2>
+                <button class="feed-refresh">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
+                    Refresh Feed
+                </button>
+            </div>
+            
+            <div class="feed-posts" id="feedPosts">
+                <!-- Feed will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Enhanced sample data for demonstration purposes
+        const samplePosts = [
+            {
+                id: 'p1',
+                text: "Just tried #quietluxury fashion and I'm obsessed with the subtle elegance! Investing in high-quality basics that will last for years rather than fast fashion trends. #sustainablefashion",
+                timestamp: "2025-05-06T10:00:00Z",
+                likes: 120,
+                shares: 45,
+                comments: 23,
+                followerCount: 2500,
+                verified: false,
+                platform: "instagram",
+                user: "minimalist_style",
+                location: "Milan, Italy",
+                image: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Y2xvdGhpbmd8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop"
+            },
+            {
+                id: 'p2',
+                text: "The stealth wealth aesthetic is the perfect antidote to logomania. Quality fabrics, perfect fit, and minimal branding. True luxury whispers, it doesn't shout. #quietluxury #stealthwealth #mindfulconsumption",
+                timestamp: "2025-05-06T09:30:00Z",
+                likes: 89,
+                shares: 12,
+                comments: 7,
+                followerCount: 1800,
+                verified: false,
+                platform: "twitter",
+                user: "fashion_observer",
+                location: "New York, NY"
+            },
+            {
+                id: 'p3',
+                text: "My minimalist outfit details for today's meetings #mindfulconsumption #quietluxury - trying to build a capsule wardrobe that's timeless and sustainable. Less is definitely more!",
+                timestamp: "2025-05-06T11:20:00Z",
+                likes: 210,
+                shares: 15,
+                comments: 31,
+                followerCount: 3200,
+                verified: false,
+                platform: "instagram",
+                user: "slow_fashion",
+                location: "Berlin, Germany",
+                image: "https://images.unsplash.com/photo-1494578379344-d6c710782a3d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fG1pbmltYWxpc3QlMjBmYXNoaW9ufGVufDB8fDB8fHww&auto=format&fit=crop"
+            },
+            {
+                id: 'p4',
+                text: "Super excited for the Met Gala tonight! Can't wait to see all the amazing fashion! The theme this year is pushing boundaries. #MetGala #fashion #MetGala2025",
+                timestamp: "2025-05-05T18:00:00Z",
+                likes: 1500,
+                shares: 230,
+                comments: 145,
+                followerCount: 45000,
+                verified: true,
+                platform: "twitter",
+                user: "fashion_weekly",
+                location: "New York, NY"
+            },
+            {
+                id: 'p5',
+                text: "Red carpet is ready for the biggest fashion event of the year! Our team is set up and ready to capture all the iconic moments. #MetGala2025 #VogueMagazine #FashionJournalism",
+                timestamp: "2025-05-05T17:30:00Z",
+                likes: 2300,
+                shares: 420,
+                comments: 180,
+                followerCount: 120000,
+                verified: true,
+                platform: "instagram",
+                user: "celebrity_news",
+                location: "Metropolitan Museum, NY",
+                image: "https://images.unsplash.com/photo-1553272725-086100aecf5e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cmVkJTIwY2FycGV0fGVufDB8fDB8fHww&auto=format&fit=crop"
+            },
+            {
+                id: 'p6',
+                text: "Digital detoxing changed my life. One week of no screens outside work hours, and I'm sleeping better, reading more, and actually having real conversations again. Highly recommend trying it! #digitaldetox #mentalhealth #mindfulness",
+                timestamp: "2025-05-06T14:10:00Z",
+                likes: 326,
+                shares: 78,
+                comments: 42,
+                followerCount: 5600,
+                verified: false,
+                platform: "twitter",
+                user: "mindful_tech",
+                location: "Portland, OR"
+            },
+            {
+                id: 'p7',
+                text: "Day 3 of my digital detox retreat in the mountains. No phone service, no wifi, just nature, books, and real human connection. It's challenging but so rewarding. #digitaldetox #unplugged #naturetherapy",
+                timestamp: "2025-05-06T08:45:00Z",
+                likes: 543,
+                shares: 89,
+                comments: 62,
+                followerCount: 8200,
+                verified: false,
+                platform: "instagram",
+                user: "wellness_seeker",
+                location: "Cascade Mountains",
+                image: "https://images.unsplash.com/photo-1528543606781-2f6e6857f318?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fG1vdW50YWluJTIwY2FiaW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop"
+            },
+            {
+                id: 'p8',
+                text: "Our company just achieved climate positive status! We're now removing more carbon than we emit. It's been a challenging journey but worth every step. #ClimatePositive #Sustainability #BusinessForGood",
+                timestamp: "2025-05-06T11:20:00Z",
+                likes: 1245,
+                shares: 402,
+                comments: 136,
+                followerCount: 35000,
+                verified: true,
+                platform: "linkedin",
+                user: "green_innovations",
+                location: "Stockholm, Sweden"
+            }
+        ];
+        
+        // Sample trend results for demonstration
+        const sampleTrendResults = [
+            {
+                type: "niche",
+                trend: "quietluxury",
+                confidence: 0.87,
+                rationale: "25.0% growth rate with 100.0% posts from micro-creators, high engagement rate of 7.2%",
+                velocityScore: 0.25,
+                engagementScore: 12.5,
+                mentionsLast24h: 250,
+                relatedPosts: ['p1', 'p2', 'p3'] // References to posts in the samplePosts array
+            },
+            {
+                type: "tentpole",
+                trend: "metgala",
+                eventName: "Met Gala",
+                confidence: 0.92,
+                rationale: "Matches known event \"Met Gala\" with 92.0% confidence",
+                velocityScore: 0.15,
+                engagementScore: 135.0,
+                mentionsLast24h: 15000,
+                relatedPosts: ['p4', 'p5'] // References to posts in the samplePosts array
+            },
+            {
+                type: "niche",
+                trend: "digitaldetox",
+                confidence: 0.81,
+                rationale: "21.5% growth rate, high engagement rate of 6.8%, significant micro-creator participation",
+                velocityScore: 0.215,
+                engagementScore: 10.2,
+                mentionsLast24h: 320,
+                relatedPosts: ['p6', 'p7'] // References to posts in the samplePosts array
+            },
+            {
+                type: "niche",
+                trend: "climatepositive",
+                confidence: 0.76,
+                rationale: "18.3% growth rate, emerging topic in sustainability conversations",
+                velocityScore: 0.183,
+                engagementScore: 9.5,
+                mentionsLast24h: 180,
+                relatedPosts: ['p8'] // References to posts in the samplePosts array
+            }
+        ];
+        
+        // Platform icons for better visualization
+        const platformIcons = {
+            twitter: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#1DA1F2"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>',
+            instagram: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#E4405F"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" fill="white"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></line></svg>',
+            facebook: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#1877F2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>',
+            linkedin: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#0A66C2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>',
+            tiktok: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#000000"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"></path></svg>'
+        };
+        
+        // DOM Elements
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const trendResults = document.getElementById('trendResults');
+        const feedPosts = document.getElementById('feedPosts');
+        const refreshFeedBtn = document.querySelector('.feed-refresh');
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show feed posts
+            populateFeed(samplePosts);
+            
+            // Set up event listener for analyze button
+            analyzeBtn.addEventListener('click', function() {
+                // In a real implementation, this would call the API
+                // For demo purposes, we'll just show the sample results
+                showResults(sampleTrendResults);
+                
+                // Highlight trending hashtags in feed
+                highlightTrendingHashtags(sampleTrendResults);
+            });
+            
+            // Set up refresh feed button
+            refreshFeedBtn.addEventListener('click', function() {
+                // Simulate new data by shuffling the posts
+                const shuffledPosts = [...samplePosts].sort(() => Math.random() - 0.5);
+                populateFeed(shuffledPosts.slice(0, Math.floor(Math.random() * 4) + 4));
+                
+                // Show a notification
+                showNotification('Feed refreshed with latest data');
+            });
+            
+            // Pre-load results for demo
+            showResults(sampleTrendResults);
+            
+            // Highlight trending hashtags
+            highlightTrendingHashtags(sampleTrendResults);
+            
+            // Set up trend-post connections
+            setupTrendPostConnections();
+        });
+        
+        // Show notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+        
+        // Set up connections between trends and posts
+        function setupTrendPostConnections() {
+            // Add click event to hashtags in the feed
+            document.querySelectorAll('.post-hashtag').forEach(hashtag => {
+                hashtag.addEventListener('click', function() {
+                    const tag = this.textContent.replace('#', '').toLowerCase();
+                    
+                    // Find if this hashtag matches a trend
+                    const matchingTrend = sampleTrendResults.find(result => 
+                        result.trend.toLowerCase() === tag
+                    );
+                    
+                    if (matchingTrend) {
+                        // Scroll to the trend card
+                        const trendCard = document.querySelector(`.trend-card[data-trend="${matchingTrend.trend}"]`);
+                        if (trendCard) {
+                            trendCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            
+                            // Highlight the card temporarily
+                            trendCard.classList.add('highlight-pulse');
+                            setTimeout(() => {
+                                trendCard.classList.remove('highlight-pulse');
+                            }, 2000);
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Highlight hashtags that match trending topics
+        function highlightTrendingHashtags(trends) {
+            const trendingHashtags = trends.map(trend => trend.trend.toLowerCase());
+            
+            document.querySelectorAll('.post-hashtag').forEach(hashtag => {
+                const tag = hashtag.textContent.replace('#', '').toLowerCase();
+                
+                if (trendingHashtags.includes(tag)) {
+                    hashtag.classList.add('trending');
+                    
+                    // Add a data attribute for the trend type
+                    const trendType = trends.find(t => t.trend.toLowerCase() === tag)?.type;
+                    if (trendType) {
+                        hashtag.setAttribute('data-trend-type', trendType);
+                    }
+                }
+            });
+            
+            // Mark posts that contain trending hashtags
+            document.querySelectorAll('.feed-post').forEach(post => {
+                const postHashtags = Array.from(post.querySelectorAll('.post-hashtag'))
+                    .map(tag => tag.textContent.replace('#', '').toLowerCase());
+                
+                const hasTrendingHashtag = postHashtags.some(tag => trendingHashtags.includes(tag));
+                
+                if (hasTrendingHashtag) {
+                    post.classList.add('trending');
+                    
+                    // Add trending badge
+                    const trendType = trends.find(t => postHashtags.includes(t.trend.toLowerCase()))?.type;
+                    const badge = document.createElement('div');
+                    badge.className = 'feed-post-badge';
+                    badge.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                        Trending
+                    `;
+                    
+                    if (!post.querySelector('.feed-post-badge')) {
+                        post.appendChild(badge);
+                    }
+                }
+            });
+        }
+        
+        // Populate the feed with posts
+        function populateFeed(posts) {
+            feedPosts.innerHTML = '';
+            
+            posts.forEach(post => {
+                const postEl = document.createElement('div');
+                postEl.className = 'feed-post';
+                postEl.setAttribute('data-post-id', post.id);
+                
+                // Extract hashtags
+                const hashtags = [];
+                const hashtagRegex = /#(\w+)/g;
+                let match;
+                while ((match = hashtagRegex.exec(post.text)) !== null) {
+                    hashtags.push(match[1]);
+                }
+                
+                // Format timestamp
+                const postDate = new Date(post.timestamp);
+                const timeAgo = getTimeAgo(postDate);
+                
+                // Create post HTML
+                postEl.innerHTML = `
+                    <div class="post-header">
+                        <div class="post-avatar">${post.user.charAt(0).toUpperCase()}</div>
+                        <div class="post-user-info">
+                            <div class="post-user">${post.user}${post.verified ? '<span class="verified-badge">✓</span>' : ''}</div>
+                            <div class="post-location">${post.location || ''}</div>
+                        </div>
+                        <div class="post-platform">${platformIcons[post.platform] || ''} ${post.platform}</div>
+                    </div>
+                    <div class="post-content">${formatPostText(post.text)}</div>
+                    ${post.image ? `<div class="post-media"><img src="${post.image}" alt="Post image"></div>` : ''}
+                    <div class="post-hashtags">
+                        ${hashtags.map(tag => `<span class="post-hashtag">#${tag}</span>`).join('')}
+                    </div>
+                    <div class="post-timestamp">${timeAgo}</div>
+                    <div class="post-stats">
+                        <span class="post-stat">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            ${post.likes}
+                        </span>
+                        <span class="post-stat">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                            ${post.comments}
+                        </span>
+                        <span class="post-stat">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                            ${post.shares}
+                        </span>
+                    </div>
+                `;
+                
+                feedPosts.appendChild(postEl);
+            });
+            
+            // After populating, set up connections
+            setupTrendPostConnections();
+        }
+        
+        // Get time ago from date
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000); // seconds
+            
+            if (diff < 60) return `${diff}s ago`;
+            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+            return `${Math.floor(diff / 86400)}d ago`;
+        }
+        
+        // Format post text (convert hashtags to colored spans)
+        function formatPostText(text) {
+            return text.replace(/#(\w+)/g, '<span style="color: var(--accent-color);">#$1</span>');
+        }
+        
+        // Show trend analysis results
+        function showResults(results) {
+            trendResults.innerHTML = '';
+            
+            if (results.length === 0) {
+                trendResults.innerHTML = '<div class="no-results">No trends detected in the current data set.</div>';
+                return;
+            }
+            
+            results.forEach(result => {
+                const trendCard = document.createElement('div');
+                trendCard.className = `trend-card ${result.type}`;
+                trendCard.setAttribute('data-type', result.type);
+                trendCard.setAttribute('data-trend', result.trend);
+                
+                // Determine confidence class
+                const confidenceClass = result.confidence >= 0.85 ? 'high-confidence' : 'medium-confidence';
+                
+                // Format numbers
+                const formattedVelocity = (result.velocityScore * 100).toFixed(1) + '%';
+                const formattedConfidence = (result.confidence * 100).toFixed(0) + '%';
+                
+                // Get related posts
+                const relatedPostsData = getRelatedPosts(result.relatedPosts);
+                
+                trendCard.innerHTML = `
+                    <div class="trend-header">
+                        <div class="trend-name">#${result.trend}</div>
+                        <div class="trend-confidence ${confidenceClass}">${formattedConfidence} confidence</div>
+                        <div class="trend-meta">
+                            <span>${result.type === 'tentpole' ? 'Event' : 'Trend'}</span>
+                            <span>${formatDate(new Date())}</span>
+                        </div>
+                    </div>
+                    <div class="trend-details">
+                        <div class="trend-detail">
+                            <div class="trend-detail-label">Analysis</div>
+                            <div class="trend-detail-value">${result.rationale}</div>
+                        </div>
+                        ${result.eventName ? `
+                        <div class="trend-detail">
+                            <div class="trend-detail-label">Event</div>
+                            <div class="trend-detail-value">${result.eventName}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="trend-related-posts">
+                        <div class="trend-related-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                            Top Posts Driving This Trend
+                        </div>
+                        ${relatedPostsData.map(post => `
+                            <div class="related-post" data-post-id="${post.id}">
+                                <div class="related-post-avatar">${post.user.charAt(0).toUpperCase()}</div>
+                                <div class="related-post-content">
+                                    <div class="related-post-user">${post.user}${post.verified ? '<span class="verified-badge">✓</span>' : ''}</div>
+                                    <div class="related-post-text">${formatPostText(post.text)}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        <button class="view-more-btn">View all ${result.mentionsLast24h.toLocaleString()} mentions</button>
+                    </div>
+                    <div class="trend-metrics">
+                        <div class="trend-metric">
+                            <div class="metric-value">${formattedVelocity}</div>
+                            <div class="metric-label">Growth</div>
+                        </div>
+                        <div class="trend-metric">
+                            <div class="metric-value">${result.mentionsLast24h.toLocaleString()}</div>
+                            <div class="metric-label">Mentions</div>
+                        </div>
+                        <div class="trend-metric">
+                            <div class="metric-value">${result.engagementScore.toFixed(1)}</div>
+                            <div class="metric-label">Engagement</div>
+                        </div>
+                    </div>
+                `;
+                
+                trendResults.appendChild(trendCard);
+            });
+            
+            // Add event listener for related posts
+            document.querySelectorAll('.related-post').forEach(post => {
+                post.addEventListener('click', function() {
+                    const postId = this.getAttribute('data-post-id');
+                    const feedPost = document.querySelector(`.feed-post[data-post-id="${postId}"]`);
+                    
+                    if (feedPost) {
+                        feedPost.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        feedPost.classList.add('highlight-pulse');
+                        setTimeout(() => {
+                            feedPost.classList.remove('highlight-pulse');
+                        }, 2000);
+                    }
+                });
+            });
+            
+            // Add event listener for "View more" buttons
+            document.querySelectorAll('.view-more-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    showNotification('Full analytics dashboard would open here in the complete product');
+                });
+            });
+        }
+        
+        // Get related posts data
+        function getRelatedPosts(postIds) {
+            return postIds.map(id => {
+                return samplePosts.find(post => post.id === id);
+            }).filter(post => post !== undefined);
+        }
+        
+        // Format date helper
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric'
+            });
+        }
+    </script>
+</body>
+</html> 

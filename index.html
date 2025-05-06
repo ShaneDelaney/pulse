@@ -3,56 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonar Chat</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <title>Trend Explorer</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .additional-tools {
+            margin-top: 1.5rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .tool-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+            transition: var(--transition-normal);
+        }
+        
+        .tool-link:hover {
+            text-decoration: underline;
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
 <body>
-    <!-- Welcome Screen with centered button -->
-    <div id="welcomeScreen" class="welcome-screen">
-        <div class="welcome-content">
-            <h1 class="welcome-logo">Sonar Chat</h1>
-            <p class="welcome-subtitle">Powered by Perplexity AI</p>
-            <button id="startExperienceBtn" class="start-experience-btn">
-                <span>Start a Chat</span>
+    <div class="app-container">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="welcome-screen">
+            <div class="welcome-content">
+                <h1 class="app-title">Trend Explorer</h1>
+                <p class="app-subtitle">Discover what's happening in the world right now</p>
+                <button id="showTrendBtn" class="primary-btn">
+                    Show Me a Trend
+                </button>
+                <div class="additional-tools">
+                    <p>Looking for more advanced trend analysis?</p>
+                    <a href="trend-analyzer.html" class="tool-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        Try our AI Trend Analyzer
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Trend Card Container (initially hidden) -->
+        <div id="trendCardContainer" class="trend-card-container hidden">
+            <!-- Trend card will be dynamically inserted here -->
+        </div>
+        
+        <!-- Controls -->
+        <div id="controls" class="controls hidden">
+            <button id="newTrendBtn" class="secondary-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New Trend
+            </button>
+            <button id="backBtn" class="secondary-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Back
             </button>
         </div>
     </div>
     
-    <!-- Main App UI (hidden initially) -->
-    <div id="appInterface" class="app-interface hidden">
-        <!-- Header with title and theme toggle -->
-        <header class="main-header">
-            <h1 class="logo-text">Sonar Chat</h1>
-            <div class="header-actions">
-                <button id="newChatButton" class="new-chat-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    <span>New Chat</span>
-                </button>
-                <button id="themeToggleButton" class="theme-toggle-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                </button>
+    <!-- Trend Card Template (will be cloned and populated) -->
+    <template id="trendCardTemplate">
+        <div class="trend-card">
+            <h2 class="trend-title"></h2>
+            <div class="trend-hashtags"></div>
+            <div class="trend-section">
+                <h3>What is it?</h3>
+                <p class="trend-context"></p>
             </div>
-        </header>
-        
-        <!-- Chat container for messages -->
-        <div id="chatContainer" class="chat-container">
-            <!-- Messages will be displayed here -->
-        </div>
-        
-        <!-- Suggestion chips area -->
-        <div id="suggestionChips" class="suggestion-chips"></div>
-        
-        <!-- Input area (fixed at bottom) -->
-        <div class="input-container">
-            <div class="input-wrapper">
-                <textarea id="userInput" rows="1" placeholder="Message Sonar..."></textarea>
-                <button id="sendButton" class="send-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                </button>
+            <div class="trend-section">
+                <h3>Where did it start?</h3>
+                <p class="trend-origin"></p>
+            </div>
+            <div class="trend-section">
+                <h3>Example</h3>
+                <p class="trend-example"></p>
             </div>
         </div>
-    </div>
+    </template>
     
     <script src="app.js"></script>
 </body>
