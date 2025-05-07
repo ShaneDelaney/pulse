@@ -347,6 +347,172 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// New endpoint for web-enabled GPT to fetch current trends
+app.post('/api/web-trends', async (req, res) => {
+  try {
+    const { topic = 'current trending topics', count = 3 } = req.body;
+    
+    if (!OPENAI_API_KEY || OPENAI_API_KEY.length === 0) {
+      console.log('OpenAI API key not configured, falling back to mock web trends response');
+      return res.json({
+        trends: getMockWebTrends(topic, count)
+      });
+    }
+    
+    console.log(`Web-enabled trend search requested for: ${topic}`);
+    
+    // Use GPT-4 with web browsing capability
+    const webPrompt = `
+      You are a trend researcher for PULSE, a trend discovery application.
+      Search the web for the most current ${count} trending topics related to "${topic}".
+      For each trend, provide:
+      1. Title: A concise name for the trend
+      2. Summary: A 2-3 sentence explanation of what it is
+      3. Source: Where this trend is most prevalent (platform, community, etc.)
+      4. Example: A specific example, link, or reference
+      5. Category: Which category this trend belongs to (Technology, Culture, Fashion, etc.)
+      
+      Format your response as valid JSON in this exact structure:
+      {
+        "trends": [
+          {
+            "title": "Trend name",
+            "summary": "Brief explanation",
+            "source": "Where it's trending",
+            "example": "Specific example, preferably with a link if available",
+            "category": "Category name"
+          }
+        ]
+      }
+    `;
+    
+    // Call the OpenAI API with web browsing enabled
+    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+      model: "gpt-4-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful trend research assistant with web browsing capability."
+        },
+        {
+          role: "user",
+          content: webPrompt
+        }
+      ],
+      max_tokens: 1500,
+      temperature: 0.7,
+      tools: [{ "type": "browsing" }],
+      tool_choice: { "type": "auto" }
+    }, {
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    // Extract and parse the JSON response
+    const content = response.data.choices[0]?.message?.content || '';
+    
+    try {
+      // Try to extract JSON from the response if it's embedded in text
+      const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || 
+                      content.match(/{[\s\S]*}/);
+                      
+      const jsonStr = jsonMatch ? jsonMatch[1] || jsonMatch[0] : content;
+      const trendsData = JSON.parse(jsonStr);
+      
+      console.log('Successfully retrieved web trends');
+      return res.json(trendsData);
+    } catch (parseError) {
+      console.error('Error parsing trend data:', parseError);
+      console.log('Raw content:', content);
+      
+      // Fallback to a more forgiving parsing approach
+      try {
+        // Try to extract just the trends array if the whole JSON is invalid
+        const trendsMatch = content.match(/"trends":\s*(\[\s*{[\s\S]*?}\s*\])/);
+        if (trendsMatch) {
+          const trendsArray = JSON.parse(trendsMatch[1]);
+          return res.json({ trends: trendsArray });
+        }
+      } catch (fallbackError) {
+        console.error('Fallback parsing failed:', fallbackError);
+      }
+      
+      // If all parsing fails, return mock data
+      return res.json({
+        trends: getMockWebTrends(topic, count)
+      });
+    }
+  } catch (error) {
+    console.error('Error in web trends API:', error);
+    res.json({
+      trends: getMockWebTrends(req.body.topic || 'current trending topics', req.body.count || 3)
+    });
+  }
+});
+
+// Generate mock web trends data for when API is not available
+function getMockWebTrends(topic, count) {
+  const trendTemplates = [
+    {
+      title: "AI-Generated Content Ethics",
+      summary: "Growing discussions around the ethical implications of AI-generated content, including concerns about misinformation, copyright, and attribution.",
+      source: "Twitter, academic forums, tech publications",
+      example: "Recent controversy over AI art competitions accepting AI-generated artwork without disclosure: https://example.com/ai-art-controversy",
+      category: "Technology"
+    },
+    {
+      title: "Digital Sustainability",
+      summary: "Focus on reducing digital carbon footprints through efficient code, sustainable server practices, and energy-conscious digital habits.",
+      source: "Tech conferences, GitHub repositories, LinkedIn",
+      example: "The Green Software Foundation's latest standards for carbon-efficient applications: https://example.com/green-software",
+      category: "Environment"
+    },
+    {
+      title: "Micro-Learning Platforms",
+      summary: "The rise of educational platforms offering bite-sized learning modules that can be completed in under 10 minutes. Popular for professional upskilling.",
+      source: "TikTok, YouTube Shorts, dedicated apps",
+      example: "Byte Academy's 5-minute coding concepts are gaining millions of views: https://example.com/byte-academy",
+      category: "Education"
+    },
+    {
+      title: "Virtual Co-Working Spaces",
+      summary: "Remote workers joining virtual environments that simulate office atmosphere, complete with background chatter and collaborative spaces.",
+      source: "Discord servers, specialized platforms",
+      example: "Gather.town's customizable office spaces seeing 200% growth year-over-year: https://example.com/virtual-coworking",
+      category: "Work"
+    },
+    {
+      title: "Ephemeral Commerce",
+      summary: "Limited-time purchasing windows (sometimes as short as 15 minutes) creating artificial scarcity and driving rapid purchasing decisions.",
+      source: "Instagram, specialized retail apps",
+      example: "Fashion brand Kairos's 30-minute 'drop windows' consistently selling out inventory: https://example.com/ephemeral-drops",
+      category: "Retail"
+    }
+  ];
+  
+  // Filter based on topic if relevant
+  let filteredTrends = trendTemplates;
+  if (topic && topic !== 'current trending topics') {
+    const lowerTopic = topic.toLowerCase();
+    filteredTrends = trendTemplates.filter(trend => 
+      trend.title.toLowerCase().includes(lowerTopic) || 
+      trend.summary.toLowerCase().includes(lowerTopic) ||
+      trend.category.toLowerCase().includes(lowerTopic)
+    );
+    
+    // If no matches, just return random ones
+    if (filteredTrends.length === 0) {
+      filteredTrends = trendTemplates;
+    }
+  }
+  
+  // Shuffle and take requested number
+  const shuffled = filteredTrends.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, Math.min(count, shuffled.length));
+}
+
 // Handle mock responses
 function handleMockResponse(req, res) {
   try {

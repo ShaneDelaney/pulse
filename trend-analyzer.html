@@ -102,9 +102,21 @@
         
         .trend-results {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
             margin-top: 1rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .trend-results {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .trend-results {
+                grid-template-columns: 1fr;
+            }
         }
         
         .trend-card {
@@ -566,10 +578,12 @@
             
             .trend-results {
                 grid-template-columns: 1fr;
+                gap: 1.25rem;
             }
             
             .trend-card {
-                margin-bottom: 1.5rem;
+                margin-bottom: 0;
+                max-width: 100%;
             }
             
             .feed-header {
@@ -811,10 +825,16 @@
 </head>
 <body>
     <div class="analyzer-container">
-        <a href="index.html" class="nav-back">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            Back to Trend Explorer
-        </a>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <a href="index.html" class="nav-back">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Back to Trend Explorer
+            </a>
+            <a href="web-trends.html" class="tool-link" style="color: var(--accent-color); text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                Search Web Trends
+            </a>
+        </div>
         
         <div class="analyzer-header">
             <h1 class="analyzer-title">PULSE AI Trend Analyzer</h1>
@@ -1038,16 +1058,6 @@
                 engagementScore: 10.2,
                 mentionsLast24h: 320,
                 relatedPosts: ['p6', 'p7'] // References to posts in the samplePosts array
-            },
-            {
-                type: "niche",
-                trend: "climatepositive",
-                confidence: 0.76,
-                rationale: "18.3% growth rate, emerging topic in sustainability conversations",
-                velocityScore: 0.183,
-                engagementScore: 9.5,
-                mentionsLast24h: 180,
-                relatedPosts: ['p8'] // References to posts in the samplePosts array
             }
         ];
         

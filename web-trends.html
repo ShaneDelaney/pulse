@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4263eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>PULSE Web Trends</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Web Trends specific styles */
+        :root {
+            --accent-color-rgb: 66, 99, 235;
+            --shadow-hover: 0 8px 24px rgba(66, 99, 235, 0.15);
+        }
+        
+        .web-trends-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .web-trends-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .web-trends-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--accent-color), #5e81ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .web-trends-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .web-trends-tag {
+            display: inline-block;
+            background-color: rgba(var(--accent-color-rgb), 0.1);
+            color: var(--accent-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        
+        .search-container {
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .search-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .search-input-group {
+            flex: 1;
+            min-width: 280px;
+        }
+        
+        .search-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 0.9rem;
+        }
+        
+        .count-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 0.9rem;
+            background-color: white;
+        }
+        
+        .search-button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 0.875rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 180px;
+        }
+        
+        .search-button:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .search-button:active {
+            transform: translateY(0);
+        }
+        
+        .loading-indicator {
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid rgba(var(--accent-color-rgb), 0.1);
+            border-top-color: var(--accent-color);
+            animation: spinner 0.8s linear infinite;
+        }
+        
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .trends-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .trend-card {
+            background-color: var(--primary-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .trend-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .trend-header {
+            padding: 1.5rem;
+            background-color: var(--secondary-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .trend-category {
+            display: inline-block;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            background-color: rgba(var(--accent-color-rgb), 0.1);
+            color: var(--accent-color);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .trend-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .trend-content {
+            padding: 1.5rem;
+            flex: 1;
+        }
+        
+        .trend-section {
+            margin-bottom: 1rem;
+        }
+        
+        .trend-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .section-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .section-content {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+        }
+        
+        .trend-source {
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+        
+        .trend-example {
+            background-color: rgba(var(--accent-color-rgb), 0.05);
+            border-left: 3px solid var(--accent-color);
+            padding: 0.75rem 1rem;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.9rem;
+        }
+        
+        .trend-example a {
+            color: var(--accent-color);
+            text-decoration: none;
+            word-break: break-word;
+        }
+        
+        .trend-example a:hover {
+            text-decoration: underline;
+        }
+        
+        .trend-footer {
+            padding: 1rem 1.5rem;
+            background-color: var(--secondary-bg);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .trend-timestamp {
+            font-style: italic;
+        }
+        
+        .trend-share {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--accent-color);
+        }
+        
+        .no-results {
+            grid-column: 1 / -1;
+            padding: 3rem;
+            text-align: center;
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .suggestion-chip {
+            background-color: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .suggestion-chip:hover {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        
+        .error-message {
+            padding: 1rem;
+            background-color: #fff3f3;
+            border-left: 4px solid #ff4d4d;
+            color: #d63031;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .success-message {
+            padding: 1rem;
+            background-color: #f0fff4;
+            border-left: 4px solid #00c853;
+            color: #00843d;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent-color);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        
+        /* Mobile-responsive adjustments */
+        @media (max-width: 768px) {
+            .web-trends-container {
+                padding: 1rem;
+            }
+            
+            .web-trends-title {
+                font-size: 2rem;
+            }
+            
+            .search-button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .trends-results {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="web-trends-container">
+        <a href="index.html" class="nav-back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back to Home
+        </a>
+        
+        <div class="web-trends-header">
+            <h1 class="web-trends-title">PULSE Web Trends</h1>
+            <p class="web-trends-subtitle">Discover the latest trending topics with our AI-powered web search</p>
+            <div class="web-trends-tag">Powered by OpenAI's Web-Enabled GPT</div>
+        </div>
+        
+        <div class="search-container">
+            <form id="searchForm" class="search-form">
+                <div class="search-input-group">
+                    <label for="searchInput" class="search-label">What trends are you interested in?</label>
+                    <input type="text" id="searchInput" class="search-input" placeholder="E.g., technology, fashion, social media, AI" value="current trending topics">
+                </div>
+                
+                <div class="search-input-group" style="max-width: 200px;">
+                    <label for="countSelect" class="search-label">Number of trends</label>
+                    <select id="countSelect" class="count-select">
+                        <option value="3" selected>3 trends</option>
+                        <option value="5">5 trends</option>
+                        <option value="10">10 trends</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="search-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    Search Trends
+                </button>
+            </form>
+            
+            <div class="suggestion-chips">
+                <div class="suggestion-chip" data-topic="technology">Technology</div>
+                <div class="suggestion-chip" data-topic="social media">Social Media</div>
+                <div class="suggestion-chip" data-topic="artificial intelligence">AI</div>
+                <div class="suggestion-chip" data-topic="fashion">Fashion</div>
+                <div class="suggestion-chip" data-topic="sustainability">Sustainability</div>
+                <div class="suggestion-chip" data-topic="entertainment">Entertainment</div>
+            </div>
+        </div>
+        
+        <div id="statusMessages"></div>
+        
+        <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+        </div>
+        
+        <div id="trendsResults" class="trends-results">
+            <!-- Results will be inserted here -->
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchForm = document.getElementById('searchForm');
+            const searchInput = document.getElementById('searchInput');
+            const countSelect = document.getElementById('countSelect');
+            const trendsResults = document.getElementById('trendsResults');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const statusMessages = document.getElementById('statusMessages');
+            const suggestionChips = document.querySelectorAll('.suggestion-chip');
+            
+            // Check for URL parameters to auto-search
+            const urlParams = new URLSearchParams(window.location.search);
+            const topicParam = urlParams.get('topic');
+            const countParam = urlParams.get('count');
+            
+            if (topicParam) {
+                searchInput.value = decodeURIComponent(topicParam);
+                if (countParam && ['3', '5', '10'].includes(countParam)) {
+                    countSelect.value = countParam;
+                }
+                searchTrends();
+            }
+            
+            // Event listener for form submission
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                searchTrends();
+            });
+            
+            // Event listeners for suggestion chips
+            suggestionChips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    searchInput.value = this.dataset.topic;
+                    searchTrends();
+                });
+            });
+            
+            // Function to search for trends
+            function searchTrends() {
+                const topic = searchInput.value.trim();
+                const count = parseInt(countSelect.value);
+                
+                if (!topic) {
+                    showStatusMessage('Please enter a search term', 'error');
+                    return;
+                }
+                
+                // Update URL with search parameters
+                const searchParams = new URLSearchParams(window.location.search);
+                searchParams.set('topic', encodeURIComponent(topic));
+                searchParams.set('count', count);
+                const newUrl = window.location.pathname + '?' + searchParams.toString();
+                window.history.pushState({}, '', newUrl);
+                
+                // Show loading indicator
+                loadingIndicator.style.display = 'flex';
+                trendsResults.innerHTML = '';
+                statusMessages.innerHTML = '';
+                
+                // Call the API
+                fetch('/api/web-trends', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ topic, count }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    if (data.trends && data.trends.length > 0) {
+                        displayTrends(data.trends);
+                        showStatusMessage(`Found ${data.trends.length} trends related to "${topic}"`, 'success');
+                    } else {
+                        trendsResults.innerHTML = `
+                            <div class="no-results">
+                                <p>No trends found for "${topic}". Try a different search term.</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    loadingIndicator.style.display = 'none';
+                    showStatusMessage('Error fetching trends: ' + error.message, 'error');
+                    trendsResults.innerHTML = `
+                        <div class="no-results">
+                            <p>Something went wrong while searching for trends. Please try again later.</p>
+                        </div>
+                    `;
+                    console.error('Error:', error);
+                });
+            }
+            
+            // Function to display trends
+            function displayTrends(trends) {
+                trendsResults.innerHTML = '';
+                
+                trends.forEach(trend => {
+                    // Format the example text to make URLs clickable
+                    let exampleHtml = trend.example;
+                    
+                    // Simple URL regex to find URLs in the example text
+                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                    exampleHtml = exampleHtml.replace(urlRegex, url => {
+                        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+                    });
+                    
+                    const trendCard = document.createElement('div');
+                    trendCard.className = 'trend-card';
+                    trendCard.innerHTML = `
+                        <div class="trend-header">
+                            <div class="trend-category">${trend.category || 'Trending'}</div>
+                            <div class="trend-title">${trend.title}</div>
+                        </div>
+                        <div class="trend-content">
+                            <div class="trend-section">
+                                <div class="section-label">Summary</div>
+                                <div class="section-content">${trend.summary}</div>
+                            </div>
+                            <div class="trend-section">
+                                <div class="section-label">Source</div>
+                                <div class="section-content trend-source">${trend.source}</div>
+                            </div>
+                            <div class="trend-section">
+                                <div class="section-label">Example</div>
+                                <div class="section-content trend-example">${exampleHtml}</div>
+                            </div>
+                        </div>
+                        <div class="trend-footer">
+                            <div class="trend-timestamp">Updated: ${new Date().toLocaleDateString()}</div>
+                            <div class="trend-share" title="Share this trend">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                                Share
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add event listener for share button
+                    const shareButton = trendCard.querySelector('.trend-share');
+                    shareButton.addEventListener('click', () => {
+                        shareTrend(trend);
+                    });
+                    
+                    trendsResults.appendChild(trendCard);
+                });
+            }
+            
+            // Function to show status messages
+            function showStatusMessage(message, type) {
+                statusMessages.innerHTML = `<div class="${type}-message">${message}</div>`;
+                
+                // Auto-hide success messages after 5 seconds
+                if (type === 'success') {
+                    setTimeout(() => {
+                        const successMessage = statusMessages.querySelector('.success-message');
+                        if (successMessage) {
+                            successMessage.style.opacity = '0';
+                            setTimeout(() => {
+                                if (statusMessages.contains(successMessage)) {
+                                    statusMessages.removeChild(successMessage);
+                                }
+                            }, 500);
+                        }
+                    }, 5000);
+                }
+            }
+            
+            // Function to share a trend
+            function shareTrend(trend) {
+                // Create share text
+                const shareText = `Check out this trending topic: ${trend.title}\n\n${trend.summary}\n\nDiscover more at PULSE Web Trends`;
+                
+                // Try to use Web Share API if available
+                if (navigator.share) {
+                    navigator.share({
+                        title: `PULSE Trend: ${trend.title}`,
+                        text: shareText,
+                        url: window.location.href
+                    })
+                    .then(() => console.log('Shared successfully'))
+                    .catch(err => {
+                        console.error('Share error:', err);
+                        fallbackShare();
+                    });
+                } else {
+                    fallbackShare();
+                }
+                
+                // Fallback to clipboard
+                function fallbackShare() {
+                    try {
+                        navigator.clipboard.writeText(shareText + '\n' + window.location.href);
+                        showStatusMessage('Copied to clipboard!', 'success');
+                    } catch (err) {
+                        console.error('Clipboard error:', err);
+                        showStatusMessage('Unable to share trend', 'error');
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
