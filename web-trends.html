@@ -313,6 +313,15 @@
             margin-bottom: 1.5rem;
         }
         
+        .info-message {
+            padding: 1rem;
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            color: #0c63e4;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+        
         .nav-back {
             display: inline-flex;
             align-items: center;
@@ -354,7 +363,7 @@
         <div class="web-trends-header">
             <h1 class="web-trends-title">PULSE Web Trends</h1>
             <p class="web-trends-subtitle">Discover the latest trending topics with our AI-powered web search</p>
-            <div class="web-trends-tag">Powered by OpenAI's Web-Enabled GPT</div>
+            <div class="web-trends-tag">Powered by Google's Gemini API</div>
         </div>
         
         <div class="search-container">
@@ -459,27 +468,42 @@
                 trendsResults.innerHTML = '';
                 statusMessages.innerHTML = '';
                 
+                // Show initial loading message
+                showStatusMessage(`Searching for trends related to "${topic}"...`, 'info');
+                
                 // Call the API
-                fetch('/api/web-trends', {
+                fetch('http://localhost:8080/api/gemini-trends', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ topic, count }),
+                    // Add timeout to prevent hanging requests
+                    signal: AbortSignal.timeout(60000) // 1 minute timeout
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        throw new Error(`Network response was not ok: ${response.status}`);
                     }
                     return response.json();
                 })
                 .then(data => {
                     // Hide loading indicator
                     loadingIndicator.style.display = 'none';
+                    statusMessages.innerHTML = ''; // Clear the searching message
+                    
+                    // Check if we got mock data by looking for common mock trend titles
+                    const mockTitles = ["AI-Generated Content Ethics", "Digital Sustainability", "Micro-Learning Platforms"];
+                    const isMockData = data.trends && data.trends.some(trend => mockTitles.includes(trend.title));
                     
                     if (data.trends && data.trends.length > 0) {
                         displayTrends(data.trends);
-                        showStatusMessage(`Found ${data.trends.length} trends related to "${topic}"`, 'success');
+                        
+                        if (isMockData) {
+                            showStatusMessage(`Currently showing example trends - Gemini API web search is not active. Please check your API configuration.`, 'info');
+                        } else {
+                            showStatusMessage(`Found ${data.trends.length} trends related to "${topic}"`, 'success');
+                        }
                     } else {
                         trendsResults.innerHTML = `
                             <div class="no-results">
@@ -489,14 +513,30 @@
                     }
                 })
                 .catch(error => {
+                    // Hide loading indicator
                     loadingIndicator.style.display = 'none';
-                    showStatusMessage('Error fetching trends: ' + error.message, 'error');
+                    console.error('Error fetching trends:', error);
+                    
+                    // Show more helpful error message
+                    if (error.name === 'TimeoutError') {
+                        showStatusMessage('The search request timed out. This might be due to API limits or server load. Please try again later.', 'error');
+                    } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                        showStatusMessage('Network error connecting to API server. Please check that the server is running at http://localhost:8080', 'error');
+                    } else if (error.message.includes('401')) {
+                        showStatusMessage('API authorization error (401). Please check your API key configuration in server/.env', 'error');
+                    } else if (error.message.includes('429')) {
+                        showStatusMessage('API rate limit exceeded (429). Please wait a bit before trying again.', 'error');
+                    } else {
+                        showStatusMessage('Error fetching trends: ' + error.message, 'error');
+                    }
+                    
                     trendsResults.innerHTML = `
                         <div class="no-results">
                             <p>Something went wrong while searching for trends. Please try again later.</p>
+                            <p>If this problem persists, the server might need to be restarted or the API key might need to be updated.</p>
+                            <p><small>Specific error: ${error.message}</small></p>
                         </div>
                     `;
-                    console.error('Error:', error);
                 });
             }
             

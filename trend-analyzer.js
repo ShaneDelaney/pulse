@@ -77,7 +77,16 @@ function analyzePostBatch(posts, historicalData = {}) {
     }
   });
   
-  return trends;
+  // Limit to maximum 3 trends, prioritizing tentpole events and then highest confidence
+  return trends
+    .sort((a, b) => {
+      // First sort by type (tentpole first)
+      if (a.type === 'tentpole' && b.type !== 'tentpole') return -1;
+      if (a.type !== 'tentpole' && b.type === 'tentpole') return 1;
+      // Then by confidence
+      return b.confidence - a.confidence;
+    })
+    .slice(0, 3);
 }
 
 /**
