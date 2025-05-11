@@ -2,127 +2,901 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trend Explorer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>EMRG Pulse</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
-    <link rel="stylesheet" href="styles.css">
     <style>
-        .additional-tools {
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --accent-color: #6366F1;
+            --accent-hover: #4F46E5;
+            --accent-light: rgba(99, 102, 241, 0.15);
+            --card-bg: #262626;
+            --input-bg: #2d2d2d;
+            --shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+            --border-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .brand {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            mix-blend-mode: difference;
+            z-index: 50;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .main-button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 1.5rem 3rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            z-index: 10;
+        }
+        
+        .main-button:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-4px);
+        }
+        
+        .main-button:active {
+            transform: translateY(0);
+        }
+        
+        .main-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        
+        .main-button:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(100, 100);
+                opacity: 0;
+            }
+        }
+        
+        .trend-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 2rem;
+            box-shadow: var(--shadow);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: var(--transition);
+            display: none;
+        }
+        
+        .trend-card.visible {
+            transform: translateY(0);
+            opacity: 1;
+            display: block;
+        }
+        
+        .trend-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, var(--accent-color), #A78BFA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .trend-summary {
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .trend-meta {
+            display: flex;
+            justify-content: space-between;
             margin-top: 1.5rem;
-            text-align: center;
             color: var(--text-secondary);
             font-size: 0.9rem;
         }
         
-        .tool-link {
-            color: var(--accent-color);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-            font-weight: 500;
-            transition: var(--transition-normal);
+        .context-form {
+            width: 100%;
+            margin-top: 1.5rem;
         }
         
-        .tool-link:hover {
-            text-decoration: underline;
-            transform: translateY(-1px);
+        .input-group {
+            position: relative;
+            width: 100%;
         }
         
-        .ai-button {
+        .context-input {
+            width: 100%;
+            background-color: var(--input-bg);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            padding: 1rem 1.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: var(--font-main);
+            transition: var(--transition);
+        }
+        
+        .context-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        
+        .context-submit {
+            position: absolute;
+            right: 6px;
+            top: 6px;
             background-color: var(--accent-color);
             color: white;
             border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            padding: 0.75rem 1.5rem;
-            cursor: pointer;
+            border-radius: 50px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            transition: var(--transition-normal);
-            margin: 0 auto;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
         }
         
-        .ai-button:hover {
+        .context-submit:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        .response-container {
+            background-color: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-top: 1rem;
+            width: 100%;
+            display: none;
+        }
+        
+        .response-container.visible {
+            display: block;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(99, 102, 241, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent-color);
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .new-trend-btn {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: 2px solid var(--accent-color);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 1.5rem;
+            margin-left: auto;
+            margin-right: auto;
+            display: none;
+        }
+        
+        .new-trend-btn.visible {
+            display: block;
+        }
+        
+        .new-trend-btn:hover {
+            background-color: var(--accent-light);
+            color: var(--text-primary);
+        }
+        
+        /* New styles for trend examples and context */
+        .trend-additional-info {
+            margin: 1.5rem 0;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .trend-examples, .trend-context {
+            margin-bottom: 1.5rem;
+        }
+        
+        .trend-examples h4, .trend-context h4 {
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .trend-examples ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .trend-examples li {
+            margin-bottom: 0.75rem;
+            background-color: var(--bg-secondary);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+        
+        .trend-examples li:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         
-        .ai-button:active {
-            transform: translateY(0);
+        .trend-examples a {
+            color: var(--text-primary);
+            text-decoration: none;
+            display: block;
+            position: relative;
+            padding-right: 1.5rem;
+        }
+        
+        .trend-examples a::after {
+            content: '↗';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent-color);
+            font-size: 1rem;
+        }
+        
+        .trend-context p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.95rem;
+            background-color: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        /* Hashtag styling */
+        #trendSource {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .hashtag {
+            background-color: var(--accent-light);
+            color: var(--accent-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .hashtag:hover {
+            background-color: var(--accent-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Enhanced mobile optimizations */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+                height: auto;
+                min-height: 100vh;
+            }
+            
+            .main-button {
+                padding: 1.25rem 2.5rem;
+                font-size: 1.1rem;
+                width: 100%;
+                max-width: 280px;
+            }
+            
+            .trend-title {
+                font-size: 1.5rem;
+            }
+            
+            .trend-summary {
+                font-size: 1rem;
+            }
+            
+            .trend-examples li, .trend-context p {
+                padding: 0.6rem 0.8rem;
+            }
+            
+            .trend-card {
+                padding: 1.5rem;
+                margin-top: 1.5rem;
+            }
+            
+            .context-input {
+                padding: 0.875rem 1.25rem;
+                font-size: 0.95rem;
+            }
+            
+            .new-trend-btn {
+                width: 100%;
+                max-width: 280px;
+            }
+        }
+        
+        /* Small mobile devices */
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .brand {
+                font-size: 0.75rem;
+            }
+            
+            .main-button {
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .trend-title {
+                font-size: 1.3rem;
+            }
+            
+            .trend-summary {
+                font-size: 0.95rem;
+                line-height: 1.5;
+            }
+            
+            .trend-card {
+                padding: 1.25rem;
+                border-radius: 10px;
+            }
+            
+            .trend-examples h4, .trend-context h4 {
+                font-size: 1rem;
+            }
+            
+            .trend-examples a {
+                font-size: 0.9rem;
+            }
+            
+            .trend-context p {
+                font-size: 0.9rem;
+            }
+            
+            .hashtag {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.6rem;
+            }
+            
+            .context-input {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .context-submit {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .response-container {
+                padding: 1.25rem;
+            }
+            
+            #responseContent {
+                font-size: 0.9rem;
+            }
+            
+            .new-trend-btn {
+                padding: 0.65rem 1.25rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Fix for iOS Safari viewport issues */
+        @supports (-webkit-touch-callout: none) {
+            .container {
+                min-height: -webkit-fill-available;
+            }
+            
+            body, html {
+                height: -webkit-fill-available;
+            }
+        }
+        
+        /* Touch targets optimization */
+        @media (hover: none) {
+            .main-button, .new-trend-btn, .context-submit, .hashtag, .trend-examples li {
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .main-button:active, .new-trend-btn:active {
+                transform: scale(0.98);
+            }
+            
+            .hashtag:active {
+                background-color: var(--accent-color);
+                color: white;
+            }
+            
+            .trend-examples li:active {
+                background-color: var(--bg-primary);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Welcome Screen -->
-        <div id="welcomeScreen" class="welcome-screen">
-            <div class="welcome-content">
-                <h1 class="app-title">Trend Explorer</h1>
-                <p class="app-subtitle">Discover what's happening in the world right now</p>
-                
-                <button id="aiSearchBtn" class="ai-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                    Search with AI Assistant
-                </button>
-                
-                <div class="additional-tools">
-                    <p>More trend search options:</p>
-                    <a href="trend-analyzer.html" class="tool-link">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                        Search Trends by Category
-                    </a>
-                    <a href="web-trends.html" class="tool-link" style="margin-top: 0.8rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                        Explore Regional Trends
-                    </a>
+    <div class="brand">EMRG Pulse</div>
+    
+    <div class="container">
+        <button id="mainButton" class="main-button">
+            What's Happening?
+        </button>
+        
+        <div id="trendCard" class="trend-card">
+            <div id="trendTitle" class="trend-title"></div>
+            <div id="trendSummary" class="trend-summary"></div>
+            
+            <div id="trendMeta" class="trend-meta">
+                <span id="trendCategory"></span>
+                <span id="trendSource"></span>
+            </div>
+            
+            <form id="contextForm" class="context-form">
+                <div class="input-group">
+                    <input type="text" id="contextInput" class="context-input" placeholder="Ask for more context..." required>
+                    <button type="submit" class="context-submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
                 </div>
+            </form>
+            
+            <div id="responseContainer" class="response-container">
+                <div id="responseContent"></div>
             </div>
         </div>
         
-        <!-- Trend Card Container (initially hidden) -->
-        <div id="trendCardContainer" class="trend-card-container hidden">
-            <!-- Trend card will be dynamically inserted here -->
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
         </div>
         
-        <!-- Controls -->
-        <div id="controls" class="controls hidden">
-            <button id="newTrendBtn" class="secondary-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                New Trend
-            </button>
-            <button id="backBtn" class="secondary-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                Back
-            </button>
-        </div>
+        <button id="newTrendBtn" class="new-trend-btn">Show Me Another Trend</button>
     </div>
     
-    <!-- Trend Card Template (will be cloned and populated) -->
-    <template id="trendCardTemplate">
-        <div class="trend-card">
-            <h2 class="trend-title"></h2>
-            <div class="trend-hashtags"></div>
-            <div class="trend-section">
-                <h3>What is it?</h3>
-                <p class="trend-context"></p>
-            </div>
-            <div class="trend-section">
-                <h3>Where did it start?</h3>
-                <p class="trend-origin"></p>
-            </div>
-            <div class="trend-section">
-                <h3>Example</h3>
-                <p class="trend-example"></p>
-            </div>
-        </div>
-    </template>
-    
-    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainButton = document.getElementById('mainButton');
+            const trendCard = document.getElementById('trendCard');
+            const trendTitle = document.getElementById('trendTitle');
+            const trendSummary = document.getElementById('trendSummary');
+            const trendSource = document.getElementById('trendSource');
+            const trendExamples = document.getElementById('trendExamples');
+            const trendContext = document.getElementById('trendContext');
+            const contextForm = document.getElementById('contextForm');
+            const contextInput = document.getElementById('contextInput');
+            const responseContainer = document.getElementById('responseContainer');
+            const responseContent = document.getElementById('responseContent');
+            const loadingEl = document.getElementById('loading');
+            const newTrendBtn = document.getElementById('newTrendBtn');
+
+            // Global variable to store the current trend
+            let currentTrend = null;
+
+            mainButton.addEventListener('click', function() {
+                fetchRandomTrend();
+            });
+
+            newTrendBtn.addEventListener('click', function() {
+                fetchRandomTrend();
+            });
+
+            contextForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const question = contextInput.value.trim();
+                if (question) {
+                    askForContext(question);
+                    contextInput.value = '';
+                }
+            });
+
+            function showLoading() {
+                loadingEl.style.display = 'flex';
+                trendCard.classList.remove('visible');
+                responseContainer.classList.remove('visible');
+                newTrendBtn.classList.remove('visible');
+            }
+
+            function hideLoading() {
+                loadingEl.style.display = 'none';
+            }
+
+            function getRandomPlatform() {
+                const platforms = ['Twitter', 'Instagram', 'TikTok', 'YouTube', 'Reddit', 'Facebook', 'LinkedIn', 'Pinterest'];
+                return platforms[Math.floor(Math.random() * platforms.length)];
+            }
+
+            // Function to verify if a URL is valid and reachable
+            async function isValidUrl(url) {
+                try {
+                    // First check if the URL is properly formatted
+                    new URL(url);
+                    
+                    // For enhanced security, we'll use a regex to ensure it's a common URL format
+                    const pattern = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+                    if (!pattern.test(url)) {
+                        return false;
+                    }
+
+                    // We don't do actual fetch verification on the client side to avoid CORS issues
+                    // This is a simplified check that avoids actual network requests
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            // Function to sanitize and process examples
+            async function processExamples(examples) {
+                if (!examples || !Array.isArray(examples)) return [];
+                
+                // Filter out examples with invalid URLs
+                const validatedExamples = [];
+                
+                for (const example of examples) {
+                    // Skip examples without URLs
+                    if (!example.url) continue;
+                    
+                    // Verify the URL
+                    const isValid = await isValidUrl(example.url);
+                    
+                    if (isValid) {
+                        // Ensure URLs have https:// prefix if not present
+                        if (!/^https?:\/\//i.test(example.url)) {
+                            example.url = 'https://' + example.url;
+                        }
+                        
+                        validatedExamples.push(example);
+                    }
+                }
+                
+                return validatedExamples;
+            }
+
+            async function fetchRandomTrend() {
+                showLoading();
+                resetUI();
+
+                const platform = getRandomPlatform();
+                
+                try {
+                    const response = await fetch('http://localhost:8080/api/social-trends', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            platform: platform,
+                            count: 1,
+                            maxAgeDays: 7  // Ensure trends are only from the last week
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const data = await response.json();
+                    
+                    if (data && data.length > 0) {
+                        const trend = data[0];
+                        
+                        // Process and validate examples
+                        trend.examples = await processExamples(trend.examples);
+                        
+                        // Ensure the trend is recent (within a week)
+                        let isRecent = true;
+                        if (trend.timestamp) {
+                            const trendDate = new Date(trend.timestamp);
+                            const oneWeekAgo = new Date();
+                            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                            
+                            if (trendDate < oneWeekAgo) {
+                                isRecent = false;
+                            }
+                        }
+                        
+                        if (isRecent) {
+                            currentTrend = trend;
+                            displayTrend(trend);
+                        } else {
+                            // If not recent, try again
+                            fetchRandomTrend();
+                        }
+                    } else {
+                        throw new Error('No trends returned');
+                    }
+                } catch (error) {
+                    console.error('Error fetching trends:', error);
+                    // Use mock data in case of error or if no recent trends are available
+                    const mockTrend = getMockTrend();
+                    currentTrend = mockTrend;
+                    displayTrend(mockTrend);
+                }
+            }
+
+            async function displayTrend(trend) {
+                trendTitle.textContent = trend.title;
+                trendSummary.textContent = trend.summary;
+                
+                // Display platforms
+                trendSource.innerHTML = '';
+                if (trend.platforms && Array.isArray(trend.platforms)) {
+                    trend.platforms.forEach(platform => {
+                        const platformEl = document.createElement('span');
+                        platformEl.textContent = platform;
+                        platformEl.classList.add('hashtag');
+                        trendSource.appendChild(platformEl);
+                    });
+                }
+                
+                // Display hashtags
+                if (trend.hashtags && Array.isArray(trend.hashtags)) {
+                    trend.hashtags.forEach(tag => {
+                        const hashtagEl = document.createElement('span');
+                        hashtagEl.textContent = tag;
+                        hashtagEl.classList.add('hashtag');
+                        trendSource.appendChild(hashtagEl);
+                    });
+                }
+                
+                // Display examples
+                trendExamples.innerHTML = '<h4>Top Examples:</h4>';
+                if (trend.examples && Array.isArray(trend.examples) && trend.examples.length > 0) {
+                    const ul = document.createElement('ul');
+                    
+                    for (const example of trend.examples) {
+                        if (example.url) {
+                            const li = document.createElement('li');
+                            const a = document.createElement('a');
+                            a.href = example.url;
+                            a.target = '_blank';
+                            a.rel = 'noopener noreferrer';
+                            a.textContent = example.text || example.url;
+                            a.title = 'Open in new tab';
+                            
+                            // Add event listener to check if link is broken on click
+                            a.addEventListener('click', function(e) {
+                                // This is more of a user notification than a technical check
+                                // since we can't reliably check if links are broken client-side due to CORS
+                                const confirmOpen = confirm('You are about to open an external link. Continue?');
+                                if (!confirmOpen) {
+                                    e.preventDefault();
+                                }
+                            });
+                            
+                            li.appendChild(a);
+                            ul.appendChild(li);
+                        }
+                    }
+                    
+                    if (ul.children.length > 0) {
+                        trendExamples.appendChild(ul);
+                    } else {
+                        trendExamples.innerHTML += '<p>No valid examples available for this trend.</p>';
+                    }
+                } else {
+                    trendExamples.innerHTML += '<p>No examples available for this trend.</p>';
+                }
+                
+                // Display context
+                trendContext.innerHTML = '<h4>Cultural Context:</h4>';
+                if (trend.context) {
+                    const p = document.createElement('p');
+                    p.textContent = trend.context;
+                    trendContext.appendChild(p);
+                } else {
+                    const p = document.createElement('p');
+                    p.textContent = 'No additional context available for this trend.';
+                    trendContext.appendChild(p);
+                }
+                
+                hideLoading();
+                trendCard.classList.add('visible');
+                newTrendBtn.classList.add('visible');
+            }
+
+            async function askForContext(question) {
+                if (!currentTrend) return;
+                
+                responseContainer.classList.remove('visible');
+                loadingEl.style.display = 'flex';
+                
+                try {
+                    const response = await fetch('http://localhost:8080/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: question,
+                            context: JSON.stringify(currentTrend)
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    responseContent.textContent = data.response || 'No additional information available.';
+                    loadingEl.style.display = 'none';
+                    responseContainer.classList.add('visible');
+                } catch (error) {
+                    console.error('Error asking for context:', error);
+                    responseContent.textContent = 'Sorry, I could not get additional information at this time.';
+                    loadingEl.style.display = 'none';
+                    responseContainer.classList.add('visible');
+                }
+            }
+
+            function resetUI() {
+                trendTitle.textContent = '';
+                trendSummary.textContent = '';
+                trendSource.innerHTML = '';
+                trendExamples.innerHTML = '';
+                trendContext.innerHTML = '';
+                responseContent.textContent = '';
+                responseContainer.classList.remove('visible');
+                contextInput.value = '';
+            }
+
+            function getMockTrend() {
+                const now = new Date();
+                const mockTrends = [
+                    {
+                        title: "AI-Generated Art Exhibition Controversy",
+                        summary: "A major art gallery's decision to feature AI-generated artwork alongside traditional pieces has sparked intense debate in the art community about authorship, creativity, and the future of human artists.",
+                        platforms: ["Twitter", "Instagram", "Reddit"],
+                        hashtags: ["#AIArt", "#ArtistVsAI", "#FutureOfCreativity"],
+                        examples: [
+                            {
+                                text: "Gallery opens 'Collaboration: Human & Machine' exhibition featuring works created with Midjourney and DALL-E",
+                                url: "https://www.artnews.com/digital-art-exhibitions"
+                            },
+                            {
+                                text: "Artists protest outside Metropolitan Museum against AI art inclusion",
+                                url: "https://www.nytimes.com/arts/protests"
+                            }
+                        ],
+                        context: "This controversy highlights the growing tension between traditional creative industries and AI advancement. The art world has been particularly affected as generators like Midjourney and DALL-E have become sophisticated enough to create museum-quality images. Many artists fear loss of commissions and devaluation of human creativity, while supporters argue AI tools are simply new mediums for human expression.",
+                        timestamp: now.toISOString()
+                    },
+                    {
+                        title: "Viral 'Touch Grass Challenge' Encouraging Digital Detox",
+                        summary: "A new social media trend called the 'Touch Grass Challenge' has gone viral, encouraging people to disconnect from technology and spend time in nature, documenting their outdoor experiences.",
+                        platforms: ["TikTok", "Instagram", "Twitter"],
+                        hashtags: ["#TouchGrassChallenge", "#DigitalDetox", "#NatureReconnect"],
+                        examples: [
+                            {
+                                text: "Influencers showing before/after mood improvements from spending 24 hours outdoors",
+                                url: "https://www.tiktok.com/discover/touchgrasschallenge"
+                            },
+                            {
+                                text: "Tech CEOs joining the challenge, sharing offline activities with followers",
+                                url: "https://www.instagram.com/explore/tags/touchgrasschallenge/"
+                            }
+                        ],
+                        context: "This trend emerges amid growing concern about digital addiction and mental health impacts of constant connectivity. The phrase 'touch grass' began as online slang telling someone they're too obsessed with internet culture and need real-world perspective. The challenge has resonated widely as studies continue to link excessive screen time with anxiety and depression, particularly among younger users.",
+                        timestamp: now.toISOString()
+                    },
+                    {
+                        title: "Sustainable Fashion 'Outfit Repeat' Movement Gains Momentum",
+                        summary: "Celebrities and influencers are increasingly posting 'outfit repeats' on social media, deliberately wearing the same clothing items multiple times to promote sustainable fashion and challenge fast fashion culture.",
+                        platforms: ["Instagram", "TikTok", "Twitter"],
+                        hashtags: ["#OutfitRepeat", "#SlowFashion", "#WearItAgain"],
+                        examples: [
+                            {
+                                text: "A-list actress documents wearing same gown to three different award ceremonies",
+                                url: "https://www.vogue.com/sustainable-celebrity-fashion"
+                            },
+                            {
+                                text: "Fashion influencers showing creative ways to style same basic items for different occasions",
+                                url: "https://www.instagram.com/explore/tags/30wears/"
+                            }
+                        ],
+                        context: "This trend represents a significant shift in fashion culture, which has traditionally celebrated constant newness. The movement gained traction following recent reports about fashion's environmental impact, with the industry responsible for approximately 10% of global carbon emissions. By normalizing outfit repeating, these influencers are challenging the 'wear once' social media culture that has fueled overconsumption.",
+                        timestamp: now.toISOString()
+                    }
+                ];
+                
+                return mockTrends[Math.floor(Math.random() * mockTrends.length)];
+            }
+        });
+    </script>
 </body>
 </html>

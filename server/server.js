@@ -856,128 +856,527 @@ async function fetchTrendsWithPerplexity(topic, count) {
 
 // New endpoint for Gemini API to fetch current trends
 app.post('/api/gemini-trends', async (req, res) => {
+  const { topic = 'current trending topics', count = 5 } = req.body;
+  
+  if (process.env.RESPONSE_MODE === 'mock') {
+    return res.json({
+      trends: getMockGeminiTrends(count)
+    });
+  }
+  
   try {
-    const { topic = 'current trending topics', count = 3, category = '', region = '' } = req.body;
+    // Define the system message and prompt
+    const systemMessage = "You are a trend analyzer specializing in identifying current trending topics. Provide concise, factual information about trending topics.";
     
-    if (!USE_GEMINI) {
-      console.log('Gemini API key not configured, falling back to mock trends response');
-      return res.json({
-        trends: getMockWebTrends(topic, count)
-      });
+    const prompt = `Identify the top ${count} trending topics related to "${topic}". 
+    For each trend, provide:
+    1. A title (brief name of the trend)
+    2. A short 1-2 sentence summary explaining why it's trending
+    3. The category it belongs to (e.g., Technology, Politics, Entertainment, Sports, etc.)
+    4. A source (where this trend is most prominent, e.g., Twitter, News, TikTok, Research)
+    
+    Return ONLY a JSON array with each trend having these properties: title, summary, category, source.`;
+    
+    // Make the API call to Gemini
+    const geminiKey = process.env.GEMINI_API_KEY;
+    
+    if (!geminiKey) {
+      console.error("Missing Gemini API key");
+      return res.status(500).json({ error: "API configuration error" });
     }
     
-    console.log(`Gemini trend search requested for: ${topic}${category ? ', category: ' + category : ''}${region ? ', region: ' + region : ''}`);
-    
-    // Build a prompt that incorporates search parameters
-    let prompt = `Search the internet for the most current ${count} trending topics`;
-    
-    if (topic) {
-      prompt += ` related to "${topic}"`;
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: systemMessage + "\n\n" + prompt }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1024,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Gemini API error:", errorData);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
+
+    const data = await response.json();
     
-    if (category) {
-      prompt += ` in the ${category} category`;
-    }
+    // Extract the JSON from the response text
+    let trends = [];
     
-    if (region) {
-      prompt += ` in ${region}`;
-    }
-    
-    prompt += `.\n\nFor each trend, provide:
-    1. Title: A concise name for the trend
-    2. Summary: A 2-3 sentence explanation of what it is
-    3. Source: Where this trend is most prevalent (platform, community, etc.)
-    4. Example: A specific example, link, or reference
-    5. Category: Which category this trend belongs to (Technology, Culture, Fashion, etc.)
-    
-    Format your response as valid JSON in this exact structure:
-    {
-      "trends": [
-        {
-          "title": "Trend name",
-          "summary": "Brief explanation",
-          "source": "Where it's trending",
-          "example": "Specific example, preferably with a link if available",
-          "category": "Category name"
+    if (data.candidates && data.candidates.length > 0 && 
+        data.candidates[0].content && 
+        data.candidates[0].content.parts && 
+        data.candidates[0].content.parts.length > 0) {
+      
+      const responseText = data.candidates[0].content.parts[0].text;
+      
+      // Try to extract JSON from the response
+      try {
+        // Look for JSON array in the response
+        const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          trends = JSON.parse(jsonMatch[0]);
+        } else {
+          // Fallback: try to parse the entire response
+          trends = JSON.parse(responseText);
         }
-      ]
+      } catch (parseError) {
+        console.error("Error parsing Gemini response as JSON:", parseError);
+        console.log("Raw response:", responseText);
+        trends = getMockGeminiTrends(count);
+      }
+    } else {
+      console.error("Unexpected Gemini API response format:", data);
+      trends = getMockGeminiTrends(count);
     }
     
-    Include real, current trending topics based on the latest information available.`;
-    
-    // Call the Gemini API
-    const response = await fetchGeminiTrends(prompt);
-    return res.json(response);
+    return res.json({ trends });
   } catch (error) {
-    console.error('Error in Gemini trends API:', error.message);
-    if (error.response) {
-      console.error('Gemini API error details:', error.response.data);
-    }
-    res.json({
-      trends: getMockWebTrends(req.body.topic || 'current trending topics', req.body.count || 3)
+    console.error("Error fetching trends from Gemini:", error);
+    
+    // Return mock data in case of error
+    return res.json({
+      trends: getMockGeminiTrends(count)
     });
   }
 });
 
-// Function to fetch trends using Gemini API
-async function fetchGeminiTrends(prompt) {
+// Mock Gemini trends function
+function getMockGeminiTrends(count = 5) {
+  const allTrends = [
+    {
+      title: "Quantum Computing Breakthrough",
+      summary: "Scientists achieved a new milestone in quantum error correction, making quantum computers more viable for practical applications.",
+      category: "Technology",
+      source: "Research Journals"
+    },
+    {
+      title: "Global Climate Summit",
+      summary: "World leaders are gathering for an emergency climate summit following recent extreme weather events and concerning climate data.",
+      category: "Environment",
+      source: "News Media"
+    },
+    {
+      title: "AI-Generated Art Controversy",
+      summary: "A major art competition has sparked debate after awarding first prize to an AI-generated piece, raising questions about creativity and authorship.",
+      category: "Arts & Culture",
+      source: "Social Media"
+    },
+    {
+      title: "Space Tourism Milestone",
+      summary: "The first fully civilian orbital mission has successfully completed its journey, marking a major step in commercial space travel.",
+      category: "Science & Technology",
+      source: "News Media"
+    },
+    {
+      title: "Cryptocurrency Market Shift",
+      summary: "A major cryptocurrency has implemented a proof-of-stake system, reducing energy consumption by over 99% and causing market-wide changes.",
+      category: "Finance",
+      source: "Financial News"
+    },
+    {
+      title: "Novel Antibiotic Discovery",
+      summary: "Researchers have discovered a new class of antibiotics effective against drug-resistant bacteria, potentially addressing the growing crisis of antibiotic resistance.",
+      category: "Health & Medicine",
+      source: "Medical Journals"
+    },
+    {
+      title: "Sustainable Fashion Movement",
+      summary: "Major fashion brands are pledging to achieve carbon neutrality and eliminate waste by 2030, transforming industry practices.",
+      category: "Fashion & Retail",
+      source: "Industry Publications"
+    },
+    {
+      title: "Remote Work Policy Changes",
+      summary: "Several major tech companies announced permanent flexible work arrangements, influencing workplace policies across industries.",
+      category: "Business",
+      source: "Corporate Announcements"
+    },
+    {
+      title: "Hydroponic Farming Expansion",
+      summary: "Vertical farming initiatives are expanding in urban areas, promising sustainable local food production with minimal environmental impact.",
+      category: "Agriculture",
+      source: "Industry Reports"
+    },
+    {
+      title: "Digital Privacy Legislation",
+      summary: "A comprehensive data privacy bill is gaining traction, potentially establishing new standards for how companies collect and use personal information.",
+      category: "Politics & Policy",
+      source: "Legislative News"
+    }
+  ];
+
+  // Return the requested number of trends
+  return allTrends.slice(0, Math.min(count, allTrends.length));
+}
+
+// New endpoint for daily trend summaries using OpenAI
+app.post('/api/daily-summary', async (req, res) => {
   try {
-    console.log('Sending request to Gemini API...');
+    const { topics = [], date = new Date().toISOString().split('T')[0] } = req.body;
     
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        contents: [{
-          parts: [{ text: prompt }]
-        }]
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json'
+    if (!USE_OPENAI) {
+      console.log('OpenAI API key not configured, falling back to mock daily summary');
+      return res.json({
+        summary: getMockDailySummary(topics, date)
+      });
+    }
+    
+    console.log(`Daily trend summary requested for date: ${date}, topics: ${topics.join(', ') || 'all'}`);
+    
+    // Build prompt for OpenAI
+    const topicsStr = topics.length > 0 ? 
+      `focusing on these topics: ${topics.join(', ')}` : 
+      'covering a diverse range of topics';
+    
+    const prompt = `Create a daily trend summary for ${date} ${topicsStr}. 
+    The summary should include:
+    
+    1. The top 3-5 trending topics of the day
+    2. A brief explanation of why each topic is trending
+    3. Key statistics or metrics where relevant
+    4. Any notable predictions or forecasts
+    
+    Format the response in markdown with clear headings and bullet points.
+    Keep the total summary under 500 words. Be informative, insightful, and analytical.`;
+    
+    // Call OpenAI API
+    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a trend analyst specializing in creating concise, data-driven daily summaries of current trends. Your analysis is based on real-time data and should be insightful, factual, and current. Include quantitative metrics where appropriate."
+        },
+        {
+          role: "user",
+          content: prompt
         }
+      ],
+      max_tokens: 1000,
+      temperature: 0.7
+    }, {
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
       }
+    });
+    
+    // Extract and return the summary
+    const summaryContent = response.data.choices[0]?.message?.content || '';
+    
+    return res.json({
+      summary: summaryContent,
+      date: date,
+      topics: topics
+    });
+  } catch (error) {
+    console.error('Error generating daily summary:', error);
+    if (error.response) {
+      console.error('OpenAI API error details:', error.response.data);
+    }
+    
+    // Return mock data on error
+    res.json({
+      summary: getMockDailySummary(req.body.topics, req.body.date),
+      error: error.message
+    });
+  }
+});
+
+// Generate mock daily summary
+function getMockDailySummary(topics = [], date = new Date().toISOString().split('T')[0]) {
+  const formattedDate = new Date(date).toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
+  const defaultTopics = [
+    {
+      name: "Sustainable Technology",
+      explanation: "Growing interest in eco-friendly tech solutions as major tech companies announced carbon-neutral targets",
+      stats: "43% increase in sustainable tech investments year-over-year"
+    },
+    {
+      name: "Remote Work Innovations",
+      explanation: "New collaborative tools and VR office spaces gaining traction as companies finalize hybrid work policies",
+      stats: "Virtual office startups saw a 27% funding increase this quarter"
+    },
+    {
+      name: "AI Regulation Developments",
+      explanation: "Discussions intensifying around proposed international AI governance frameworks",
+      stats: "72% of tech leaders support standardized AI ethics guidelines according to recent surveys"
+    },
+    {
+      name: "Digital Health Platforms",
+      explanation: "Telemedicine and health monitoring apps showing continued growth post-pandemic",
+      stats: "Monthly active users up 18% across major telehealth platforms"
+    }
+  ];
+  
+  // Filter topics if specific ones were requested
+  let selectedTopics = defaultTopics;
+  if (topics && topics.length > 0) {
+    // Simple matching - in a real app, this would be more sophisticated
+    const filteredTopics = defaultTopics.filter(topic => 
+      topics.some(requestedTopic => 
+        topic.name.toLowerCase().includes(requestedTopic.toLowerCase())
+      )
     );
     
-    console.log('Received response from Gemini API');
-    
-    // Extract the response text
-    const responseText = response.data.candidates[0].content.parts[0].text;
-    
-    // Try to parse JSON from the response
-    try {
-      // Find JSON in the response text
-      const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/) || 
-                         responseText.match(/{[\s\S]*}/);
-                         
-      const jsonStr = jsonMatch ? jsonMatch[1] || jsonMatch[0] : responseText;
-      
-      // Parse JSON
-      return JSON.parse(jsonStr);
-    } catch (parseError) {
-      console.error('Error parsing Gemini response as JSON:', parseError);
-      console.log('Raw Gemini response:', responseText);
-      
-      // Fall back to a more forgiving parsing approach
-      try {
-        // Try to extract just the trends array if the whole JSON is invalid
-        const trendsMatch = responseText.match(/"trends":\s*(\[\s*{[\s\S]*?}\s*\])/);
-        if (trendsMatch) {
-          const trendsArray = JSON.parse(trendsMatch[1]);
-          return { trends: trendsArray };
-        }
-      } catch (fallbackError) {
-        console.error('Fallback parsing failed:', fallbackError);
-      }
-      
-      // If all parsing fails, return mock data
-      return {
-        trends: getMockWebTrends('current trending topics', 3)
-      };
+    // If we found matches, use them, otherwise keep all topics
+    if (filteredTopics.length > 0) {
+      selectedTopics = filteredTopics;
     }
-  } catch (error) {
-    console.error('Error calling Gemini API:', error);
-    throw error;
   }
+  
+  // Generate markdown summary
+  const summary = `
+# Daily Trend Summary for ${formattedDate}
+
+## Today's Top Trends
+
+${selectedTopics.map(topic => `
+### ${topic.name}
+- **Why it's trending**: ${topic.explanation}
+- **Key metrics**: ${topic.stats}
+`).join('')}
+
+## Outlook
+
+Based on current patterns, we anticipate continued momentum in ${selectedTopics[0].name.toLowerCase()} 
+through the end of the quarter. Watch for new developments in ${selectedTopics[1].name.toLowerCase()} 
+as major industry players announce their Q2 strategies.
+
+---
+
+*This is a mock summary. Connect your OpenAI API key for real-time trend analysis.*
+`;
+
+  return summary.trim();
+}
+
+// New endpoint for social media trends using OpenAI
+app.post('/api/social-trends', async (req, res) => {
+    try {
+        const { platform = 'all', count = 5, maxAgeDays = 7 } = req.body;
+        
+        if (!USE_OPENAI) {
+            console.log('OpenAI API key not configured, falling back to mock social trends');
+            return res.json(getMockSocialTrends(count, maxAgeDays));
+        }
+        
+        console.log(`Social media trends requested for platform: ${platform}, count: ${count}, maxAgeDays: ${maxAgeDays}`);
+        
+        // System prompt that instructs the assistant to be a social media trend analyst
+        const systemPrompt = `You are a social media trend analyst with access to the latest viral content across all platforms.
+                           Your specialty is identifying and explaining current viral social media trends.
+                           Focus ONLY on trends that have emerged or gained significant traction WITHIN THE LAST ${maxAgeDays} DAYS.
+                           Do not include older trends or general topics.
+                           Everything you report must be current and time-sensitive, from the past week at most.`;
+                           
+        // User prompt that requests the trending topics with specific format instructions
+        const userPrompt = `Identify the top ${count} currently viral social media trends${platform !== 'all' ? ` on ${platform}` : ''} that have emerged or gained significant traction ONLY within the past ${maxAgeDays} days.
+                         
+                         Format your response as a JSON array of objects with the following properties:
+                         - title: A catchy, descriptive title for the trend
+                         - summary: A brief explanation of what the trend is about
+                         - platforms: An array of platforms where this trend is popular
+                         - hashtags: An array of relevant hashtags
+                         - examples: An array of objects, each with:
+                           - text: Description of the example content
+                           - url: Link to a representative example (real, functioning URLs)
+                         - context: Cultural or historical context that helps explain why this trend is significant
+                         - timestamp: The current date in ISO format
+                         
+                         Only include trends that are genuinely trending RIGHT NOW or within the past ${maxAgeDays} days.
+                         Make sure ALL example URLs are real and functional links to actual content.
+                         Do NOT generate fake or non-functioning URLs.
+                         Return ONLY the JSON data without any explanations.`;
+        
+        // Make API call to OpenAI
+        const response = await axios.post(
+            'https://api.openai.com/v1/chat/completions',
+            {
+                model: 'gpt-4o',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                max_tokens: 1500,
+                temperature: 0.7,
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        
+        // Extract the response content
+        const responseContent = response.data.choices[0]?.message?.content || '';
+        
+        // Parse the JSON from the response
+        let trendsData;
+        try {
+            // Look for JSON array in the response
+            const jsonMatch = responseContent.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+                trendsData = JSON.parse(jsonMatch[0]);
+            } else {
+                trendsData = JSON.parse(responseContent);
+            }
+            
+            // Add current timestamp to each trend if not provided
+            const now = new Date();
+            trendsData = trendsData.map(trend => {
+                if (!trend.timestamp) {
+                    trend.timestamp = now.toISOString();
+                }
+                return trend;
+            });
+            
+            // Log for debugging
+            console.log(`Returning ${trendsData.length} recent social media trends (last ${maxAgeDays} days).`);
+            
+        } catch (error) {
+            console.error('Error parsing OpenAI response:', error);
+            return res.json(getMockSocialTrends(count, maxAgeDays));
+        }
+        
+        res.json(trendsData);
+    } catch (error) {
+        console.error('Error in /api/social-trends:', error);
+        res.json(getMockSocialTrends(count, maxAgeDays));
+    }
+});
+
+// Get mock social trends with timestamps from the last week
+function getMockSocialTrends(count = 5, maxAgeDays = 7) {
+    const trends = [
+        {
+            title: "AI-Generated Art Exhibition Controversy",
+            summary: "A major art gallery's decision to feature AI-generated artwork alongside traditional pieces has sparked intense debate in the art community about authorship, creativity, and the future of human artists.",
+            platforms: ["Twitter", "Instagram", "Reddit"],
+            hashtags: ["#AIArt", "#ArtistVsAI", "#FutureOfCreativity"],
+            examples: [
+                {
+                    text: "Gallery opens 'Collaboration: Human & Machine' exhibition featuring works created with Midjourney and DALL-E",
+                    url: "https://www.artnews.com/digital-art-exhibitions"
+                },
+                {
+                    text: "Artists protest outside Metropolitan Museum against AI art inclusion",
+                    url: "https://www.nytimes.com/arts/protests"
+                }
+            ],
+            context: "This controversy highlights the growing tension between traditional creative industries and AI advancement. The art world has been particularly affected as generators like Midjourney and DALL-E have become sophisticated enough to create museum-quality images. Many artists fear loss of commissions and devaluation of human creativity, while supporters argue AI tools are simply new mediums for human expression.",
+            timestamp: getRandomRecentDate(maxAgeDays).toISOString()
+        },
+        {
+            title: "Viral 'Touch Grass Challenge' Encouraging Digital Detox",
+            summary: "A new social media trend called the 'Touch Grass Challenge' has gone viral, encouraging people to disconnect from technology and spend time in nature, documenting their outdoor experiences.",
+            platforms: ["TikTok", "Instagram", "Twitter"],
+            hashtags: ["#TouchGrassChallenge", "#DigitalDetox", "#NatureReconnect"],
+            examples: [
+                {
+                    text: "Influencers showing before/after mood improvements from spending 24 hours outdoors",
+                    url: "https://www.tiktok.com/discover/touchgrasschallenge"
+                },
+                {
+                    text: "Tech CEOs joining the challenge, sharing offline activities with followers",
+                    url: "https://www.instagram.com/explore/tags/touchgrasschallenge/"
+                }
+            ],
+            context: "This trend emerges amid growing concern about digital addiction and mental health impacts of constant connectivity. The phrase 'touch grass' began as online slang telling someone they're too obsessed with internet culture and need real-world perspective. The challenge has resonated widely as studies continue to link excessive screen time with anxiety and depression, particularly among younger users.",
+            timestamp: getRandomRecentDate(maxAgeDays).toISOString()
+        },
+        {
+            title: "Sustainable Fashion 'Outfit Repeat' Movement",
+            summary: "Celebrities and influencers are increasingly posting 'outfit repeats' on social media, deliberately wearing the same clothing items multiple times to promote sustainable fashion and challenge fast fashion culture.",
+            platforms: ["Instagram", "TikTok", "Twitter"],
+            hashtags: ["#OutfitRepeat", "#SlowFashion", "#WearItAgain"],
+            examples: [
+                {
+                    text: "A-list actress documents wearing same gown to three different award ceremonies",
+                    url: "https://www.vogue.com/sustainable-celebrity-fashion"
+                },
+                {
+                    text: "Fashion influencers showing creative ways to style same basic items for different occasions",
+                    url: "https://www.instagram.com/explore/tags/30wears/"
+                }
+            ],
+            context: "This trend represents a significant shift in fashion culture, which has traditionally celebrated constant newness. The movement gained traction following recent reports about fashion's environmental impact, with the industry responsible for approximately 10% of global carbon emissions. By normalizing outfit repeating, these influencers are challenging the 'wear once' social media culture that has fueled overconsumption.",
+            timestamp: getRandomRecentDate(maxAgeDays).toISOString()
+        },
+        {
+            title: "Collaborative Cooking Livestreams",
+            summary: "Interactive cooking sessions where viewers guide chefs through recipe modifications in real-time are gaining popularity across streaming platforms.",
+            platforms: ["Twitch", "TikTok Live", "Instagram Live"],
+            hashtags: ["#CrowdSourcedCooking", "#LiveChef", "#CookWithMe"],
+            examples: [
+                {
+                    text: "Professional chef lets viewers vote on ingredients for experimental dishes",
+                    url: "https://www.twitch.tv/directory/game/Food%20%26%20Drink"
+                },
+                {
+                    text: "Home cook creates fusion recipes based on live audience suggestions",
+                    url: "https://www.tiktok.com/@cookingwithaudience"
+                }
+            ],
+            context: "This trend blends entertainment, education, and community engagement, transforming passive cooking demonstrations into participatory experiences. It's part of a broader shift toward interactive content that builds connections between creators and audiences.",
+            timestamp: getRandomRecentDate(maxAgeDays).toISOString()
+        },
+        {
+            title: "Hyperrealistic AI Portrait Challenges",
+            summary: "Users are creating and sharing eerily realistic AI-generated portraits that blur the line between real and artificial humans, often posting them alongside actual photos as a 'spot the difference' challenge.",
+            platforms: ["Instagram", "TikTok", "Twitter"],
+            hashtags: ["#AIorHuman", "#HyperrealisticAI", "#SpotTheDifference"],
+            examples: [
+                {
+                    text: "Viral thread of AI-generated 'people' that don't exist gaining millions of views",
+                    url: "https://twitter.com/hashtag/aiportrait"
+                },
+                {
+                    text: "Artists demonstrating the creation process of hyperrealistic digital humans",
+                    url: "https://www.instagram.com/explore/tags/aiportrait/"
+                }
+            ],
+            context: "This trend highlights both the impressive advancements in generative AI technology and growing concerns around digital authenticity. As these tools become more accessible, discussions about ethics, identity verification, and the definition of authentic human content continue to evolve.",
+            timestamp: getRandomRecentDate(maxAgeDays).toISOString()
+        }
+    ];
+
+    // Shuffle and take the requested number of trends
+    return trends
+        .sort(() => 0.5 - Math.random())
+        .slice(0, count);
+}
+
+// Helper function to generate a random date within the last maxAgeDays
+function getRandomRecentDate(maxAgeDays) {
+    const now = new Date();
+    const daysAgo = Math.floor(Math.random() * maxAgeDays);
+    const hoursAgo = Math.floor(Math.random() * 24);
+    
+    now.setDate(now.getDate() - daysAgo);
+    now.setHours(now.getHours() - hoursAgo);
+    
+    return now;
 }
 
 // Start the server
